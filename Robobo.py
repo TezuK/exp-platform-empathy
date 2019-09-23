@@ -172,7 +172,7 @@ class Robobo:
         :param duration: Duration of the note in seconds (decimals can be used to used, like 0.2 or 0.5)
         :param wait: True: blocking mode, False: non-blocking mode
         :type note: int
-        :type duration: int
+        :type duration: float
         :type wait: bool
         """
         self.rem.playNote(note, duration, wait)

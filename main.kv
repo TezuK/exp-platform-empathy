@@ -37,6 +37,7 @@
     robotui: robot_ui
     humanui: human_ui
     systemui: system_ui
+    exitsign: exit_sign
 
     canvas:
         Line:
@@ -45,6 +46,11 @@
         Line:
             points: 500, 0, 500, 100
             width: 5
+
+    Image:
+        id: exit_sign
+        source: 'img/exit.png'
+        size: self.texture_size
 
     Player:
         id: player_id

@@ -99,6 +99,7 @@ class Robot:
                 self.robobo.playSound(Sounds.DISAPPROVE)
                 self.robobo.setLedColorTo(led=LED.All, color=Color.ORANGE)
                 self.robobo.moveTiltTo(degrees=130, speed=TILT_SPEED)
+                self.robobo.sayText("We need to go back")
         elif situation == R_SIT_WIN:
             if DEBUG_MODE:
                 print("WIN. HAPPY.")
@@ -197,11 +198,14 @@ class Robot:
             if DEBUG_MODE:
                 print("Tossing coin~")
             else:
-                for i in range(0, 2):
-                    self.robobo.playNote(60, 0.5)
-                    self.robobo.movePanTo(degrees=-5, speed=PAN_SPEED*2)
-                    self.robobo.playNote(64, 0.5)
-                    self.robobo.movePanTo(degrees=5, speed=PAN_SPEED*2)
+                if move == TURN_ROBOT:
+                    #print("ROBOT SIGN")
+                    self.robobo.playNote(note=60, duration=0.5, wait=False)
+                    self.robobo.movePanTo(degrees=-5, speed=PAN_SPEED*2, wait=False)
+                elif move == TURN_PLAYER:
+                    #print("HUMAN SIGN")
+                    self.robobo.playNote(note=64, duration=0.5, wait=False)
+                    self.robobo.movePanTo(degrees=5, speed=PAN_SPEED*2, wait=False)
         elif situation == R_NEG_LOSE:
             if DEBUG_MODE:
                 print("Ow...Its your decision")

@@ -3,6 +3,7 @@ from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.uix.label import Label
 from kivy.core.window import Window
+from kivy.uix.image import Image
 from kivy.properties import (
     NumericProperty, ReferenceListProperty, ObjectProperty, ListProperty
 )
@@ -98,6 +99,7 @@ class MainGame(Widget):
     robotui = ObjectProperty(None)
     systemui = ObjectProperty(None)
     humanui = ObjectProperty(None)
+    exitsign = Image()
 
     def __init__(self, **kwargs):
         super(MainGame, self).__init__(**kwargs)
@@ -116,6 +118,7 @@ class MainGame(Widget):
         self.maze = background.maze_generation(MAZE_SIZE, "full")
         self.robot_map = background.maze_generation(MAZE_SIZE, "empty")
         self.painted_map = [[False for j in range(MAZE_SIZE)] for i in range(MAZE_SIZE)]
+        self.block_map = [[False for j in range(MAZE_SIZE)] for i in range(MAZE_SIZE)]
         self.robot_pos = [0, 0]  # [x, y]
         self.player_feel = EMOTION_NEUTRAL
         self.current_turn = START_SELECT
@@ -129,6 +132,7 @@ class MainGame(Widget):
         self.toss_time = 0.0
         self.toss_counter = 0
         self.toss_aux = 0
+        self.current_toss = None
         self.waiting_toss = False
         self.next_step = None
 
@@ -274,6 +278,13 @@ class MainGame(Widget):
             self.robot_react()
             self.turn_count += 1
             self.change_active_emotion()
+            # show the exit if activated
+            if SHOW_EXIT:
+                size = [500/MAZE_SIZE, 500/MAZE_SIZE]
+                self.exitsign.size = [size[0]*0.8, size[1]*0.8]
+                self.exitsign.pos = [500 - size[0] + 5, 110]
+            else:
+                self.exitsign.size = 0, 0
         else:
             self.maze_game()
             self.player.move(self.robot_pos)
@@ -286,31 +297,41 @@ class MainGame(Widget):
                         self.show_walls(maze_pos=[j, i], walls_value=walls_value)
                         self.painted_map[j][i] = True
     
-    def show_walls(self, maze_pos, walls_value):
+    def show_walls(self, maze_pos, walls_value, win=False):
         block_size = 500/MAZE_SIZE
         block_pos = maze_pos[0] * block_size, maze_pos[1] * block_size
         
         # Paint all the walls that are in the block
         with self.canvas:
-            if walls_value[WALL_TOP]:
-                wall_pos = [block_pos[0], block_pos[1] + block_size * (1 - WALL_THICK) + MAZE_SHIFT_Y]
-                wall_size = [block_size, WALL_THICK * block_size]
-                Rectangle(pos=wall_pos, size=wall_size)
-                
-            if walls_value[WALL_RIGHT]:
-                wall_pos = [block_pos[0] + block_size * (1 - WALL_THICK), block_pos[1] + MAZE_SHIFT_Y]
-                wall_size = [WALL_THICK * block_size, block_size]
-                Rectangle(pos=wall_pos, size=wall_size)
-                
-            if walls_value[WALL_BOTTOM]:
-                wall_pos = [block_pos[0], block_pos[1] + MAZE_SHIFT_Y]
-                wall_size = [block_size, WALL_THICK * block_size]
-                Rectangle(pos=wall_pos, size=wall_size)
-                
-            if walls_value[WALL_LEFT]:
-                wall_pos = [block_pos[0], block_pos[1] + MAZE_SHIFT_Y]
-                wall_size = [WALL_THICK * block_size, block_size]
-                Rectangle(pos=wall_pos, size=wall_size)
+            if win:
+                Color(0, 1., 0)
+
+            if not maze_pos == [MAZE_SIZE-1, 0]:
+                if walls_value[WALL_TOP]:
+                    wall_pos = [block_pos[0], block_pos[1] + block_size * (1 - WALL_THICK) + MAZE_SHIFT_Y]
+                    wall_size = [block_size, WALL_THICK * block_size]
+                    self.block_map[maze_pos[0]][maze_pos[1]] = Rectangle(pos=wall_pos, size=wall_size)
+
+                if walls_value[WALL_RIGHT]:
+                    wall_pos = [block_pos[0] + block_size * (1 - WALL_THICK), block_pos[1] + MAZE_SHIFT_Y]
+                    wall_size = [WALL_THICK * block_size, block_size]
+                    self.block_map[maze_pos[0]][maze_pos[1]] = Rectangle(pos=wall_pos, size=wall_size)
+
+                if walls_value[WALL_BOTTOM]:
+                    wall_pos = [block_pos[0], block_pos[1] + MAZE_SHIFT_Y]
+                    wall_size = [block_size, WALL_THICK * block_size]
+                    self.block_map[maze_pos[0]][maze_pos[1]] = Rectangle(pos=wall_pos, size=wall_size)
+
+                if walls_value[WALL_LEFT]:
+                    wall_pos = [block_pos[0], block_pos[1] + MAZE_SHIFT_Y]
+                    wall_size = [WALL_THICK * block_size, block_size]
+                    self.block_map[maze_pos[0]][maze_pos[1]] = Rectangle(pos=wall_pos, size=wall_size)
+
+    def change_maze_color(self):
+        for j in range(MAZE_SIZE):
+            for i in range(MAZE_SIZE):
+                walls_value = self.maze.mmap[j][MAZE_SIZE - 1 - i].walls
+                self.show_walls(maze_pos=[j, i], walls_value=walls_value, win=True)
 
     def maze_game(self):
         if not self.waiting_input and not self.waiting_toss and not self.solved:
@@ -318,7 +339,7 @@ class MainGame(Widget):
             # Get robot's next possible choice
             [self.robot_choice, backtrack, one_way] = background.maze_solving(self.maze, self.robot_map, self.robot_pos)
 
-            if not AUTO_MODE or (AUTO_MODE and not one_way and not backtrack):
+            if not backtrack and (not AUTO_MODE or (AUTO_MODE and not one_way and not backtrack)):
                 # VS Mode logic
                 if self.game_mode == MODE_VS:
                     if self.current_turn == TURN_ROBOT:
@@ -442,7 +463,7 @@ class MainGame(Widget):
 
             if (self.game_mode == MODE_VS and not self.waiting_input) or \
                     (self.game_mode == MODE_COOP and self.neg_stage == NEG_STAGE_AGREE) or \
-                    (AUTO_MODE and (backtrack or one_way)):
+                    (AUTO_MODE and one_way) or backtrack:
 
                 # Update position
                 self.robot_map = background.move_position(self.robot_map, self.robot_pos, self.next_step,
@@ -484,17 +505,19 @@ class MainGame(Widget):
             self.toss_counter += 1
             self.toss_aux = 0
 
-        self.robot.make_action(R_NEG_COIN)
-
         # one second flickering between screens
-        if time.time() - self.toss_time > 2:
+        if time.time() - self.toss_time > 2 and self.current_toss != TURN_PLAYER:
             self.robotui.display_on_screen([""])
             self.humanui.display_on_screen(["Your turn!"])
             self.toss_time = time.time()
             self.toss_aux += 1
-        elif time.time() - self.toss_time > 1:
+            self.robot.make_action(R_NEG_COIN, TURN_PLAYER)
+            self.current_toss = TURN_PLAYER
+        elif time.time() - self.toss_time > 1 and self.current_toss != TURN_ROBOT:
             self.robotui.display_on_screen(["My turn!"])
             self.humanui.display_on_screen([""])
+            self.robot.make_action(R_NEG_COIN, TURN_ROBOT)
+            self.current_toss = TURN_ROBOT
 
         if self.toss_aux > 4:
             # Clean screen and show the winner
@@ -525,6 +548,7 @@ class MainGame(Widget):
             self.humanui.display_on_screen(["Your turn!!"], mode=self.game_mode)
             self.robot.make_action(R_SIT_WAITING)
         elif self.solved:
+            self.change_maze_color()
             self.robot.make_action(R_SIT_WIN)
         elif sum(walls) == 3 and self.robot_pos != [0, 0]:
             self.robotui.display_on_screen(["Owwwwwww..."], mode=self.game_mode)

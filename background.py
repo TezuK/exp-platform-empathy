@@ -156,26 +156,26 @@ def check_if_valid(maze, robot_map, current_pos, map_choice):
     if map_choice is not None:
         # If the player wants to go down
         if map_choice[0] == current_pos[0] and map_choice[1] == current_pos[1] + 1:
-            if not walls[WALL_BOTTOM] and current_pos[1] != MAZE_SIZE - 1 \
-                    and robot_map[map_choice[0]][map_choice[1]] != BLOCK_DISCARD:
+            if not walls[WALL_BOTTOM] and current_pos[1] != MAZE_SIZE - 1:
+                    #and robot_map[map_choice[0]][map_choice[1]] != BLOCK_DISCARD:
                 return True
 
         # If the player wants to go right
         elif map_choice[0] == current_pos[0] + 1 and map_choice[1] == current_pos[1]:
-            if not walls[WALL_RIGHT] and current_pos[0] != MAZE_SIZE - 1 \
-                    and robot_map[map_choice[0]][map_choice[1]] != BLOCK_DISCARD:
+            if not walls[WALL_RIGHT] and current_pos[0] != MAZE_SIZE - 1:
+                    #and robot_map[map_choice[0]][map_choice[1]] != BLOCK_DISCARD:
                 return True
 
         # If the player wants to go up
         elif map_choice[0] == current_pos[0] and map_choice[1] == current_pos[1] - 1:
-            if not walls[WALL_TOP] and current_pos[1] != 0 \
-                    and robot_map[map_choice[0]][map_choice[1]] != BLOCK_DISCARD:
+            if not walls[WALL_TOP] and current_pos[1] != 0:
+                    #and robot_map[map_choice[0]][map_choice[1]] != BLOCK_DISCARD:
                 return True
 
         # If the player wants to go left
         elif map_choice[0] == current_pos[0] - 1 and map_choice[1] == current_pos[1]:
-            if not walls[WALL_LEFT] and current_pos[0] != 0 \
-                    and robot_map[map_choice[0]][map_choice[1]] != BLOCK_DISCARD:
+            if not walls[WALL_LEFT] and current_pos[0] != 0:
+                    #and robot_map[map_choice[0]][map_choice[1]] != BLOCK_DISCARD:
                 return True
 
     return False

@@ -1,11 +1,12 @@
 # System configuration constants
 ROBOT_IP = '192.168.1.126'
-MAZE_SIZE = 5              # in squares
+MAZE_SIZE = 7              # in squares
 START_SELECT = "ROBOT"      # ROBOT / HUMAN
-DEBUG_MODE = True           # If True doesn't use the robot
+DEBUG_MODE = False           # If True doesn't use the robot
 COIN_PERCENTAGE = 0        # To use the coin when no option is available. 0> No use, 100> Always use
 PRE_NEG_CHOICES = 2
 AUTO_MODE = False           # Autopilot mode that will move automatically if there is no other choice
+SHOW_EXIT = True            # If True, it will show a sign on the exit block
 R_SAME_CNT = 3              # Number of same actions it turns to auto mode
 MAX_DISPLAY_LINES = 10
 
