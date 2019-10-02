@@ -2,8 +2,10 @@
 ROBOT_IP = '192.168.1.126'
 MAZE_SIZE = 7              # in squares
 START_SELECT = "ROBOT"      # ROBOT / HUMAN
+FIXED_MAP = 2               # Use the predetermined maps. 0 => Random, 1 or 2 for defined in maze_def.py
 DEBUG_MODE = True           # If True doesn't use the robot
-COIN_PERCENTAGE = 0        # To use the coin when no option is available. 0> No use, 100> Always use
+SHOW_ALL = False            # If True, show the whole map
+COIN_PERCENTAGE = 0         # To use the coin when no option is available. 0> No use, 100> Always use
 PRE_NEG_CHOICES = 2
 AUTO_MODE = False           # Autopilot mode that will move automatically if there is no other choice
 SHOW_EXIT = True            # If True, it will show a sign on the exit block

@@ -105,7 +105,6 @@ class MainGame(Widget):
         super(MainGame, self).__init__(**kwargs)
 
         # Variables
-        self.show_all = False
         self.solved = False
         self.prev_r_pos = [0, 0]
         self.prev_decision = None
@@ -291,7 +290,7 @@ class MainGame(Widget):
 
             for j in range(MAZE_SIZE):
                 for i in range(MAZE_SIZE):
-                    if (self.show_all or background.check_if_visible(j, MAZE_SIZE - 1 - i, self.robot_map))\
+                    if (SHOW_ALL or background.check_if_visible(j, MAZE_SIZE - 1 - i, self.robot_map))\
                             and not self.painted_map[j][i]:
                         walls_value = self.maze.mmap[j][MAZE_SIZE - 1 - i].walls
                         self.show_walls(maze_pos=[j, i], walls_value=walls_value)

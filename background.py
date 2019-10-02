@@ -1,5 +1,6 @@
 from const_def import *
 import mazeclass
+from maze_def import MazeDef
 
 
 def check_if_visible(pos_x, pos_y, robot_map):
@@ -16,9 +17,13 @@ def check_if_visible(pos_x, pos_y, robot_map):
 
 def maze_generation(maze_size, maze_type):
     if maze_type == "full":
-        # whole map generation
+        # whole map generation in random
         maze = mazeclass.Map()
         maze.gen_map(maze_size, maze_size)
+
+        if FIXED_MAP != 0:
+            maze_def = MazeDef()
+            maze = maze_def.gen_maze(maze)
     else:
         # blank map, just for positions
         maze = [[BLOCK_UNKNOWN for j in range(maze_size)] for i in range(maze_size)]
