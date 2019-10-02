@@ -2,7 +2,7 @@
 ROBOT_IP = '192.168.1.126'
 MAZE_SIZE = 7              # in squares
 START_SELECT = "ROBOT"      # ROBOT / HUMAN
-DEBUG_MODE = False           # If True doesn't use the robot
+DEBUG_MODE = True           # If True doesn't use the robot
 COIN_PERCENTAGE = 0        # To use the coin when no option is available. 0> No use, 100> Always use
 PRE_NEG_CHOICES = 2
 AUTO_MODE = False           # Autopilot mode that will move automatically if there is no other choice

@@ -34,11 +34,12 @@ def maze_solving(maze, robot_map, current_pos):
     # Doing it without "if chains" because of possible array position violations [-1]
     backtrack = False
     one_way = False
+    special = False
 
     # Get discarded & passed walls
     walls_discarded = get_number_walls(robot_map, current_pos, walls, BLOCK_DISCARD)
     walls_passed = get_number_walls(robot_map, current_pos, walls, BLOCK_PASS)
-    
+
     # Find if we have to backtrack
     if sum(walls) + walls_discarded == 3 and current_pos != [0, 0]:
         backtrack = True
@@ -53,25 +54,76 @@ def maze_solving(maze, robot_map, current_pos):
         if robot_map[current_pos[0]][current_pos[1] + 1] != BLOCK_DISCARD \
                 and (robot_map[current_pos[0]][current_pos[1] + 1] != BLOCK_PASS or backtrack) \
                 and (robot_map[current_pos[0]][current_pos[1] + 1] != BLOCK_CONFLICT or backtrack):
-            return [[current_pos[0], current_pos[1] + 1], backtrack, one_way]
-
+            return [[current_pos[0], current_pos[1] + 1], backtrack, one_way, special]
     # If the right path is open & is not the end, go right
     if not walls[WALL_RIGHT] and current_pos[0] != MAZE_SIZE - 1:
         # Only if it is not discarded
         if robot_map[current_pos[0] + 1][current_pos[1]] != BLOCK_DISCARD \
                 and (robot_map[current_pos[0] + 1][current_pos[1]] != BLOCK_PASS or backtrack) \
                 and (robot_map[current_pos[0] + 1][current_pos[1]] != BLOCK_CONFLICT or backtrack):
-            return [[current_pos[0] + 1, current_pos[1]], backtrack, one_way]
-
+            return [[current_pos[0] + 1, current_pos[1]], backtrack, one_way, special]
     # If the path up is open & is not the beginning, go up
     if not walls[WALL_TOP] and current_pos[1] != 0:
         # Only if it is not discarded
         if robot_map[current_pos[0]][current_pos[1] - 1] != BLOCK_DISCARD \
                 and (robot_map[current_pos[0]][current_pos[1] - 1] != BLOCK_PASS or backtrack) \
                 and (robot_map[current_pos[0]][current_pos[1] - 1] != BLOCK_CONFLICT or backtrack):
-            return [[current_pos[0], current_pos[1] - 1], backtrack, one_way]
+            return [[current_pos[0], current_pos[1] - 1], backtrack, one_way, special]
+    # If the right path is open & is not the end, go right
+    if not walls[WALL_LEFT] and current_pos[0] != 0:
+        # Only if it is not discarded
+        if robot_map[current_pos[0] - 1][current_pos[1]] != BLOCK_DISCARD \
+                and (robot_map[current_pos[0] - 1][current_pos[1]] != BLOCK_PASS or backtrack) \
+                and (robot_map[current_pos[0] - 1][current_pos[1]] != BLOCK_CONFLICT or backtrack):
+            return [[current_pos[0] - 1, current_pos[1]], backtrack, one_way, special]
 
-    return [[current_pos[0] - 1, current_pos[1]], backtrack, one_way]
+    # SPECIAL LOGIC FOR USER MISGIVINGS, CONVERTING PASSED BLOCK TO CONFLICT ONES
+    special = True
+    # If the path down is open & is not the end, go down
+    if not walls[WALL_BOTTOM] and current_pos[1] != MAZE_SIZE - 1:
+        # Only if it is not discarded
+        if robot_map[current_pos[0]][current_pos[1] + 1] == BLOCK_PASS:
+            return [[current_pos[0], current_pos[1] + 1], backtrack, one_way, special]
+    # If the right path is open & is not the end, go right
+    if not walls[WALL_RIGHT] and current_pos[0] != MAZE_SIZE - 1:
+        # Only if it is not discarded
+        if robot_map[current_pos[0] + 1][current_pos[1]] == BLOCK_PASS:
+            return [[current_pos[0] + 1, current_pos[1]], backtrack, one_way, special]
+    # If the path up is open & is not the beginning, go up
+    if not walls[WALL_TOP] and current_pos[1] != 0:
+        # Only if it is not discarded
+        if robot_map[current_pos[0]][current_pos[1] - 1] == BLOCK_PASS:
+            return [[current_pos[0], current_pos[1] - 1], backtrack, one_way, special]
+        # If the right path is open & is not the end, go right
+    if not walls[WALL_LEFT] and current_pos[0] != 0:
+        # Only if it is not discarded
+        if robot_map[current_pos[0] - 1][current_pos[1]] == BLOCK_PASS:
+            return [[current_pos[0] - 1, current_pos[1]], backtrack, one_way, special]
+
+    # SPECIAL LOGIC FOR USER EXTRA MISGIVINGS, CONVERTING PASSED CONFLICT TO CURRENT
+    special = True
+    # If the path down is open & is not the end, go down
+    if not walls[WALL_BOTTOM] and current_pos[1] != MAZE_SIZE - 1:
+        # Only if it is not discarded
+        if robot_map[current_pos[0]][current_pos[1] + 1] == BLOCK_CONFLICT:
+            return [[current_pos[0], current_pos[1] + 1], backtrack, one_way, special]
+    # If the right path is open & is not the end, go right
+    if not walls[WALL_RIGHT] and current_pos[0] != MAZE_SIZE - 1:
+        # Only if it is not discarded
+        if robot_map[current_pos[0] + 1][current_pos[1]] == BLOCK_CONFLICT:
+            return [[current_pos[0] + 1, current_pos[1]], backtrack, one_way, special]
+    # If the path up is open & is not the beginning, go up
+    if not walls[WALL_TOP] and current_pos[1] != 0:
+        # Only if it is not discarded
+        if robot_map[current_pos[0]][current_pos[1] - 1] == BLOCK_CONFLICT:
+            return [[current_pos[0], current_pos[1] - 1], backtrack, one_way, special]
+        # If the right path is open & is not the end, go right
+    if not walls[WALL_LEFT] and current_pos[0] != 0:
+        # Only if it is not discarded
+        if robot_map[current_pos[0] - 1][current_pos[1]] == BLOCK_CONFLICT:
+            return [[current_pos[0] - 1, current_pos[1]], backtrack, one_way, special]
+
+    return [[0, 0], False, False, True]
 
 
 def get_number_walls(robot_map, current_pos, walls, wall_type):
@@ -91,7 +143,12 @@ def get_number_walls(robot_map, current_pos, walls, wall_type):
 
 def move_position(robot_map, current_pos, next_pos, prev_pos, backtrack):
 
-    if next_pos == prev_pos and not backtrack:
+    if robot_map[current_pos[0]][current_pos[1]] == BLOCK_CONFLICT:
+        # if this block has been marked as conflict on purpose then mantain it
+        # if it is the first block then reconvert all to unkown
+        if current_pos == [0, 0]:
+            robot_map = replace_conflict(robot_map)
+    elif next_pos == prev_pos and not backtrack:
         # If there is a backtracking on purpose by the user without need, then erase the last block data
         # this is because future actions may be affected by that
         robot_map[current_pos[0]][current_pos[1]] = BLOCK_CONFLICT
@@ -107,7 +164,7 @@ def move_position(robot_map, current_pos, next_pos, prev_pos, backtrack):
 
 
 def move_translate(current_pos, robot_input):
-    print(str(current_pos) + "," + str(robot_input))
+
     if robot_input == [current_pos[0], current_pos[1] - 1]:
         return R_MOVE_BACK
     elif robot_input == [current_pos[0] + 1, current_pos[1]]:
@@ -157,25 +214,21 @@ def check_if_valid(maze, robot_map, current_pos, map_choice):
         # If the player wants to go down
         if map_choice[0] == current_pos[0] and map_choice[1] == current_pos[1] + 1:
             if not walls[WALL_BOTTOM] and current_pos[1] != MAZE_SIZE - 1:
-                    #and robot_map[map_choice[0]][map_choice[1]] != BLOCK_DISCARD:
                 return True
 
         # If the player wants to go right
         elif map_choice[0] == current_pos[0] + 1 and map_choice[1] == current_pos[1]:
             if not walls[WALL_RIGHT] and current_pos[0] != MAZE_SIZE - 1:
-                    #and robot_map[map_choice[0]][map_choice[1]] != BLOCK_DISCARD:
                 return True
 
         # If the player wants to go up
         elif map_choice[0] == current_pos[0] and map_choice[1] == current_pos[1] - 1:
             if not walls[WALL_TOP] and current_pos[1] != 0:
-                    #and robot_map[map_choice[0]][map_choice[1]] != BLOCK_DISCARD:
                 return True
 
         # If the player wants to go left
         elif map_choice[0] == current_pos[0] - 1 and map_choice[1] == current_pos[1]:
             if not walls[WALL_LEFT] and current_pos[0] != 0:
-                    #and robot_map[map_choice[0]][map_choice[1]] != BLOCK_DISCARD:
                 return True
 
     return False

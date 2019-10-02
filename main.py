@@ -337,7 +337,10 @@ class MainGame(Widget):
         if not self.waiting_input and not self.waiting_toss and not self.solved:
             self.clean_screen()
             # Get robot's next possible choice
-            [self.robot_choice, backtrack, one_way] = background.maze_solving(self.maze, self.robot_map, self.robot_pos)
+            [self.robot_choice, backtrack, one_way, special] = background.maze_solving(self.maze, self.robot_map,
+                                                                                       self.robot_pos)
+            if special:
+                self.robot_map[self.robot_pos[0]][self.robot_pos[1]] = BLOCK_CONFLICT
 
             if not backtrack and (not AUTO_MODE or (AUTO_MODE and not one_way and not backtrack)):
                 # VS Mode logic
@@ -489,7 +492,6 @@ class MainGame(Widget):
                 self.turn_count += 1
                 self.neg_stage = NEG_STAGE_NONE
                 self.negotiation.reset()
-                print(str(self.decisions_taken))
         elif self.waiting_toss:
             self.coin_toss()
         elif not self.waiting_input and self.solved:
@@ -586,10 +588,6 @@ class MainLogic:
             
             if m_option == OPTION_DEBUG:  # 1
                 self.robot_debug()
-            elif m_option == OPTION_VS:  # 2
-                self.maze_vs()
-            elif m_option == OPTION_COOP:  # 3
-                self.maze_coop()
             elif m_option == OPTION_QUIT:  # q
                 m_running = False
         
@@ -626,33 +624,6 @@ class MainLogic:
                 self.robot.presentation()
             elif i_option == DEBUG_QUIT:  # q
                 i_running = False
-
-    def maze_vs(self):
-        # Just starting with the robot playing solo
-        i_solved = False
-
-        while not i_solved:
-            # debug
-            print("MAP: " + str(self.maze.mmap[self.robot_pos[0]][self.robot_pos[1]].walls))
-            print("ROBOT: " + str(self.robot_map))
-
-            time.sleep(2)
-
-            next_step = background.maze_solving(self.maze, self.robot_map, self.robot_pos)
-            self.robot_map = background.move_position(self.robot_map, self.robot_pos, next_step)
-
-            # Update position
-            self.robot_pos = self.next_step
-
-            if self.robot_pos == [MAZE_SIZE - 1, MAZE_SIZE - 1]:
-                i_solved = True
-
-        else:
-            print("Solved")
-        
-    def maze_coop(self):
-        reserved = ""
-
 
 if __name__ == '__main__':
     MainApp().run()
