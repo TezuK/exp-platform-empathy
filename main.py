@@ -233,6 +233,8 @@ class MainGame(Widget):
                 self.player_feel = self.emotions[i]
                 self.change_active_emotion()
                 background.write_log(emotion=self.player_feel)
+                self.emotion_count = 0
+                self.systemui.display_on_screen([""])
                 if DEBUG_MODE:
                     print(self.player_feel)
 
