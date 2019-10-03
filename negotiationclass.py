@@ -48,13 +48,17 @@ class Negotiation:
         return message
 
     def mark_as_used(self, is_robot=True, arg_number=0):
-        if is_robot:
+        available = False
+        if is_robot and self.arg_avail_robot[arg_number]:
             self.arg_avail_robot[arg_number] = False
-        else:
+            available = True
+        elif not is_robot and self.arg_avail_human[arg_number]:
             self.arg_avail_human[arg_number] = False
+            available = True
+
+        return available
 
     def choose_first_avail(self):
-        print("AVAIL: " + str(self.arg_avail_robot))
         for i in range(0, len(self.arg_avail_robot)):
             if self.arg_avail_robot[i]:
                 # If it is the coin toss, do the percentage

@@ -158,6 +158,7 @@ class MainGame(Widget):
     def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
         choice = PLAYER_NONE
         neg_choice = False
+        available = False
 
         if self.waiting_input:
             if self.game_mode == MODE_VS or (self.game_mode == MODE_COOP and self.neg_stage == NEG_STAGE_START):
@@ -173,19 +174,21 @@ class MainGame(Widget):
                     self.neg_stage != NEG_STAGE_START and self.neg_stage != NEG_STAGE_NONE:
                 if keycode[1] == '1':
                     choice = P_NEG_CH1
-                    self.negotiation.mark_as_used(is_robot=False, arg_number=0)
+                    available = self.negotiation.mark_as_used(is_robot=False, arg_number=0)
                 elif keycode[1] == '2':
                     choice = P_NEG_CH2
-                    self.negotiation.mark_as_used(is_robot=False, arg_number=1)
+                    available = self.negotiation.mark_as_used(is_robot=False, arg_number=1)
                 elif keycode[1] == '3':
                     choice = P_NEG_CH3
-                    self.negotiation.mark_as_used(is_robot=False, arg_number=2)
+                    available = self.negotiation.mark_as_used(is_robot=False, arg_number=2)
                 elif keycode[1] == '4':
                     choice = P_NEG_COIN
+                    available = True
                 elif keycode[1] == '5':
                     choice = P_NEG_YIELD
+                    available = True
 
-                if choice != PLAYER_NONE:
+                if choice != PLAYER_NONE and available:
                     neg_choice = True
             # This is done at the end of the game, close screen
             elif self.game_mode == MODE_FINISH:
@@ -506,21 +509,7 @@ class MainGame(Widget):
             self.toss_counter += 1
             self.toss_aux = 0
 
-        # one second flickering between screens
-        if time.time() - self.toss_time > 2 and self.current_toss != TURN_PLAYER:
-            self.robotui.display_on_screen([""])
-            self.humanui.display_on_screen(["Your turn!"])
-            self.toss_time = time.time()
-            self.toss_aux += 1
-            self.robot.make_action(R_NEG_COIN, TURN_PLAYER)
-            self.current_toss = TURN_PLAYER
-        elif time.time() - self.toss_time > 1 and self.current_toss != TURN_ROBOT:
-            self.robotui.display_on_screen(["My turn!"])
-            self.humanui.display_on_screen([""])
-            self.robot.make_action(R_NEG_COIN, TURN_ROBOT)
-            self.current_toss = TURN_ROBOT
-
-        if self.toss_aux > 4:
+        if self.neg_stage != NEG_STAGE_AGREE and self.toss_aux > 3:
             # Clean screen and show the winner
             self.clean_screen()
             if randint(0, 1) == 1:
@@ -536,9 +525,27 @@ class MainGame(Widget):
                 self.decisions_taken[1] += 1
                 self.last_decision = TURN_PLAYER
 
-            time.sleep(2)
             self.neg_stage = NEG_STAGE_AGREE
+            self.toss_time = time.time()
+        elif self.neg_stage == NEG_STAGE_AGREE and time.time() - self.toss_time > 2:
+            # option to reveal the winner on screen
             self.waiting_toss = False
+        elif self.neg_stage != NEG_STAGE_AGREE and \
+                time.time() - self.toss_time > 2 and self.current_toss != TURN_PLAYER:
+            # one second flickering between screens
+            self.robotui.display_on_screen([""])
+            self.humanui.display_on_screen(["Your turn!"])
+            self.toss_time = time.time()
+            self.toss_aux += 1
+            self.robot.make_action(R_NEG_COIN, TURN_PLAYER)
+            self.current_toss = TURN_PLAYER
+        elif self.neg_stage != NEG_STAGE_AGREE and \
+                time.time() - self.toss_time > 1 and self.current_toss != TURN_ROBOT:
+            # one second flickering between screens
+            self.robotui.display_on_screen(["My turn!"])
+            self.humanui.display_on_screen([""])
+            self.robot.make_action(R_NEG_COIN, TURN_ROBOT)
+            self.current_toss = TURN_ROBOT
 
     def robot_react(self, one_way=False, backtrack=False):
         walls = self.maze.mmap[self.robot_pos[0]][self.robot_pos[1]].walls
