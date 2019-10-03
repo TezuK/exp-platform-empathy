@@ -9,6 +9,8 @@ COIN_PERCENTAGE = 0         # To use the coin when no option is available. 0> No
 PRE_NEG_CHOICES = 2
 AUTO_MODE = False           # Autopilot mode that will move automatically if there is no other choice
 SHOW_EXIT = True            # If True, it will show a sign on the exit block
+EMOTION_TURNS = 10          # Number of turn spacing that the human will be prompted to give emotion feedback
+                            # this turn count refers to the total turn count, including the robot
 R_SAME_CNT = 3              # Number of same actions it turns to auto mode
 MAX_DISPLAY_LINES = 10
 

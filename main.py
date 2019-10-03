@@ -63,7 +63,10 @@ class SystemUI(Widget):
                                              color=[.1, 1, .1, .9], bold=True, markup=True))
 
             if len(message) != 0:
-                self.labels[1].text = "[size=40sp]" + message[0] + "[/size]"
+                if len(message[0]) > 15:
+                    self.labels[1].text = "[size=26sp]" + message[0] + "[/size]"
+                else:
+                    self.labels[1].text = "[size=40sp]" + message[0] + "[/size]"
             elif len(message) == 0:
                 self.labels[i].text = ""
 
@@ -134,6 +137,7 @@ class MainGame(Widget):
         self.current_toss = None
         self.waiting_toss = False
         self.next_step = None
+        self.emotion_count = 0
 
         # Decisions taken in negotiation from the [Robot,Human] & Dead End encounters due to their decisions
         self.decisions_taken = [0, 0]
@@ -338,6 +342,8 @@ class MainGame(Widget):
     def maze_game(self):
         if not self.waiting_input and not self.waiting_toss and not self.solved:
             self.clean_screen()
+            if self.emotion_count >= EMOTION_TURNS:
+                self.systemui.display_on_screen(["Please select emotion"])
             # Get robot's next possible choice
             [self.robot_choice, backtrack, one_way, special] = background.maze_solving(self.maze, self.robot_map,
                                                                                        self.robot_pos)
@@ -492,6 +498,7 @@ class MainGame(Widget):
                 background.write_log(self.next_step, self.game_mode, self.turn_count,
                                      self.current_turn, self.neg_stage, one_way)
                 self.turn_count += 1
+                self.emotion_count += 1
                 self.neg_stage = NEG_STAGE_NONE
                 self.negotiation.reset()
         elif self.waiting_toss:
