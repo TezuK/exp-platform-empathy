@@ -624,5 +624,6 @@ class MainLogic:
             elif i_option == DEBUG_QUIT:  # q
                 i_running = False
 
+
 if __name__ == '__main__':
     MainApp().run()

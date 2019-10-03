@@ -1,6 +1,6 @@
 # System configuration constants
 ROBOT_IP = '192.168.1.126'
-MAZE_SIZE = 7              # in squares
+MAZE_SIZE = 7               # in squares
 START_SELECT = "ROBOT"      # ROBOT / HUMAN
 FIXED_MAP = 2               # Use the predetermined maps. 0 => Random, 1 or 2 for defined in maze_def.py
 DEBUG_MODE = True           # If True doesn't use the robot
@@ -133,3 +133,4 @@ C_WAITING = 0
 C_MOVEMENT = 1
 C_AGREEMENT = 2
 C_TURN = 3
+C_BACKTRACK = 4

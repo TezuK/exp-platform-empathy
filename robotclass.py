@@ -19,7 +19,7 @@ class Robot:
         self.turn_speed = 20
         self.robobo = Robobo(robot_ip)
         self.same_sit_cnt = 1
-        self.counters = [0, 0, 0, 0]
+        self.counters = [0, 0, 0, 0, 0]
         self.prev_sit = None
         if not DEBUG_MODE:
             self.robobo.connect()
@@ -129,15 +129,21 @@ class Robot:
         elif situation == R_SIT_BACKTRACK:
             if DEBUG_MODE:
                 print("Returning...")
+                time.sleep(0.75)
             else:
                 self.robobo.setEmotionTo(Emotions.TIRED)
-                self.robobo.playSound(Sounds.MUMBLE)
                 self.set_upper_leds(color=Color.YELLOW)
+
+                if self.counters[C_BACKTRACK] % 3 == 0:
+                    self.robobo.playSound(Sounds.MUMBLE)
+                else:
+                    time.sleep(0.75)
+                self.counters[C_BACKTRACK] += 1
         elif situation == R_SIT_WAITING:
             if DEBUG_MODE:
                 print("Waiting for direction input...")
             else:
-                self.robobo.sayText(robotext.waiting[self.same_sit_cnt % len(robotext.waiting)])
+                self.robobo.sayText(robotext.waiting[self.counters[C_WAITING] % len(robotext.waiting)])
                 #print(robotext.waiting[self.counters[C_WAITING] % len(robotext.waiting)])
 
                 self.counters[C_WAITING] += 1
@@ -149,7 +155,7 @@ class Robot:
                 print("Deciding...")
                 time.sleep(1)
             else:
-                self.robobo.sayText(robotext.waiting[self.same_sit_cnt % len(robotext.waiting)])
+                self.robobo.sayText(robotext.waiting[self.counters[C_TURN] % len(robotext.waiting)])
                 #print(robotext.robot_turn[self.counters[C_TURN] % len(robotext.robot_turn)])
 
                 self.robobo.movePanTo(degrees=-10, speed=PAN_SPEED)
@@ -165,7 +171,7 @@ class Robot:
             else:
                 self.base_moves(move, mode, one_way, neg_stage)
 
-                self.robobo.sayText(robotext.waiting[self.same_sit_cnt % len(robotext.waiting)])
+                self.robobo.sayText(robotext.waiting[self.counters[C_WAITING] % len(robotext.waiting)])
                 #print(robotext.waiting[self.counters[C_WAITING] % len(robotext.waiting)])
 
                 self.set_upper_leds(color=Color.CYAN)
@@ -184,7 +190,7 @@ class Robot:
             else:
                 self.robobo.setEmotionTo(Emotions.HAPPY)
 
-                self.robobo.sayText(robotext.waiting[self.same_sit_cnt % len(robotext.waiting)])
+                self.robobo.sayText(robotext.waiting[self.counters[C_AGREEMENT] % len(robotext.waiting)])
                 #print(robotext.agreement[self.counters[C_AGREEMENT] % len(robotext.agreement)])
                 self.counters[C_AGREEMENT] += 1
         elif situation == R_NEG_YIELD:
@@ -223,7 +229,7 @@ class Robot:
     def base_moves(self, move, mode=MODE_VS, one_way=False, neg_stage=NEG_STAGE_NONE):
 
         if one_way:
-            self.robobo.sayText(robotext.one_way[self.same_sit_cnt % len(robotext.one_way)])
+            self.robobo.sayText(robotext.one_way[self.counters[C_WAITING] % len(robotext.one_way)])
             #print(robotext.one_way[self.counters[C_WAITING] % len(robotext.one_way)])
         elif (mode == MODE_VS and self.counters[C_MOVEMENT] % 3 == 0)\
                 or (mode == MODE_COOP and neg_stage == NEG_STAGE_START):

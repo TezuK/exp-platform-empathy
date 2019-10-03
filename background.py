@@ -4,12 +4,11 @@ from maze_def import MazeDef
 
 
 def check_if_visible(pos_x, pos_y, robot_map):
-
     if robot_map[pos_x][pos_y] != BLOCK_UNKNOWN or \
-            ((pos_x - 1 >= 0) and (robot_map[pos_x-1][pos_y] != BLOCK_UNKNOWN)) or \
-            ((pos_x + 1 < MAZE_SIZE) and (robot_map[pos_x+1][pos_y] != BLOCK_UNKNOWN)) or \
-            ((pos_y - 1 >= 0) and (robot_map[pos_x][pos_y-1] != BLOCK_UNKNOWN)) or \
-            ((pos_y + 1 < MAZE_SIZE) and (robot_map[pos_x][pos_y+1] != BLOCK_UNKNOWN)):
+            ((pos_x - 1 >= 0) and (robot_map[pos_x - 1][pos_y] != BLOCK_UNKNOWN)) or \
+            ((pos_x + 1 < MAZE_SIZE) and (robot_map[pos_x + 1][pos_y] != BLOCK_UNKNOWN)) or \
+            ((pos_y - 1 >= 0) and (robot_map[pos_x][pos_y - 1] != BLOCK_UNKNOWN)) or \
+            ((pos_y + 1 < MAZE_SIZE) and (robot_map[pos_x][pos_y + 1] != BLOCK_UNKNOWN)):
         return True
 
     return False
@@ -133,7 +132,7 @@ def maze_solving(maze, robot_map, current_pos):
 
 def get_number_walls(robot_map, current_pos, walls, wall_type):
     total = 0
-    
+
     if not walls[WALL_BOTTOM] and robot_map[current_pos[0]][current_pos[1] + 1] == wall_type:
         total += 1
     if not walls[WALL_RIGHT] and robot_map[current_pos[0] + 1][current_pos[1]] == wall_type:
@@ -142,12 +141,11 @@ def get_number_walls(robot_map, current_pos, walls, wall_type):
         total += 1
     if not walls[WALL_LEFT] and robot_map[current_pos[0] - 1][current_pos[1]] == wall_type:
         total += 1
-    
+
     return total
 
 
 def move_position(robot_map, current_pos, next_pos, prev_pos, backtrack):
-
     if robot_map[current_pos[0]][current_pos[1]] == BLOCK_CONFLICT:
         # if this block has been marked as conflict on purpose then mantain it
         # if it is the first block then reconvert all to unkown
@@ -164,12 +162,11 @@ def move_position(robot_map, current_pos, next_pos, prev_pos, backtrack):
         robot_map[current_pos[0]][current_pos[1]] = BLOCK_PASS
 
     robot_map[next_pos[0]][next_pos[1]] = BLOCK_CURRENT
-    
+
     return robot_map
 
 
 def move_translate(current_pos, robot_input):
-
     if robot_input == [current_pos[0], current_pos[1] - 1]:
         return R_MOVE_BACK
     elif robot_input == [current_pos[0] + 1, current_pos[1]]:
@@ -183,7 +180,6 @@ def move_translate(current_pos, robot_input):
 
 
 def input_to_pos(current_pos, player_input):
-
     if player_input == PLAYER_UP and current_pos[1] != 0:
         return [current_pos[0], current_pos[1] - 1]
     elif player_input == PLAYER_RIGHT and current_pos[0] != MAZE_SIZE - 1:
@@ -198,7 +194,6 @@ def input_to_pos(current_pos, player_input):
 
 
 def pos_to_input(current_pos, robot_input):
-
     if robot_input == [current_pos[0], current_pos[1] - 1]:
         return PLAYER_UP
     elif robot_input == [current_pos[0] + 1, current_pos[1]]:
