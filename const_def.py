@@ -5,10 +5,11 @@ START_SELECT = "ROBOT"      # ROBOT / HUMAN
 FIXED_MAP = 2               # Use the predetermined maps. 0 => Random, 1 or 2 for defined in maze_def.py
 DEBUG_MODE = True           # If True doesn't use the robot
 SHOW_ALL = False            # If True, show the whole map
-COIN_PERCENTAGE = 0         # To use the coin when no option is available. 0> No use, 100> Always use
+COIN_PERCENTAGE = 50        # To use the coin when no option is available. 0> No use, 100> Always use
 PRE_NEG_CHOICES = 2
-AUTO_MODE = False           # Autopilot mode that will move automatically if there is no other choice
+AUTO_MODE = False            # Autopilot mode that will move automatically if there is no other choice
 SHOW_EXIT = True            # If True, it will show a sign on the exit block
+EMOTION_MANDATORY = False   # If True, emotion input is mandatory and user can't do anything until it is selected
 EMOTION_TURNS = 10          # Number of turn spacing that the human will be prompted to give emotion feedback
                             # this turn count refers to the total turn count, including the robot
 R_SAME_CNT = 3              # Number of same actions it turns to auto mode

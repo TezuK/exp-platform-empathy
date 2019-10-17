@@ -97,11 +97,26 @@ class HumanUI(Widget):
                         self.labels[i].text = ""
 
 
+class BatteryUI(Widget):
+    labels = ""
+
+    def display_on_screen(self, robot, init=False):
+        battery = robot.status()
+        with self.canvas:
+            if init:
+                self.labels = Label(text="", pos=(600, -35),
+                                    color=[1, 1, 1, .9], bold=False, markup=True)
+
+            self.labels.text = "[size=12sp]Base Battery: " + str(battery[0]) + "%             " + \
+                               "Phone Battery: " + str(battery[1]) + "%[/size]"
+
+
 class MainGame(Widget):
     player = ObjectProperty(None)
     robotui = ObjectProperty(None)
     systemui = ObjectProperty(None)
     humanui = ObjectProperty(None)
+    batteryui = ObjectProperty(None)
     exitsign = Image()
 
     def __init__(self, **kwargs):
@@ -154,6 +169,7 @@ class MainGame(Widget):
         self.robotui.display_on_screen(message=[""], init=True)
         self.systemui.display_on_screen(message=[""], init=True)
         self.humanui.display_on_screen(message=[""], init=True)
+        self.batteryui.display_on_screen(robot=self.robot, init=True)
 
     def _keyboard_closed(self):
         self._keyboard.unbind(on_key_down=self._on_keyboard_down)
@@ -164,7 +180,7 @@ class MainGame(Widget):
         neg_choice = False
         available = False
 
-        if self.waiting_input:
+        if self.waiting_input and not (EMOTION_MANDATORY and self.emotion_count >= EMOTION_TURNS):
             if self.game_mode == MODE_VS or (self.game_mode == MODE_COOP and self.neg_stage == NEG_STAGE_START):
                 if keycode[1] == 'up':
                     choice = PLAYER_UP
@@ -344,6 +360,7 @@ class MainGame(Widget):
     def maze_game(self):
         if not self.waiting_input and not self.waiting_toss and not self.solved:
             self.clean_screen()
+            self.batteryui.display_on_screen(robot=self.robot)
             if self.emotion_count >= EMOTION_TURNS:
                 self.systemui.display_on_screen(["Please select emotion"])
             # Get robot's next possible choice
@@ -506,6 +523,7 @@ class MainGame(Widget):
         elif self.waiting_toss:
             self.coin_toss()
         elif not self.waiting_input and self.solved:
+            self.clean_screen()
             self.display_on_screen(["CONGRATULATIONS!!", "WE FOUND THE EXIT!!", "", "Press Q to Quit."])
             self.game_mode = MODE_FINISH
             self.waiting_input = True

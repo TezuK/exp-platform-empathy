@@ -69,7 +69,7 @@ class Robot:
     
     def status(self):
         # Returns battery level as a string to display
-        return self.robobo.readBatteryLevel()
+        return [self.robobo.readBatteryLevel("base"), self.robobo.readBatteryLevel("phone")]
         
     def presentation(self):
         self.robobo.setEmotionTo(Emotions.NORMAL)
@@ -104,7 +104,7 @@ class Robot:
             if DEBUG_MODE:
                 print("WIN. HAPPY.")
             else:
-                self.robobo.setEmotionTo(Emotions.HAPPY)
+                self.robobo.setEmotionTo(Emotions.LAUGHING)
                 self.robobo.setLedColorTo(led=LED.All, color=Color.BLUE)
                 self.robobo.playSound(sound=Sounds.LAUGH)
                 self.do_movement(R_MOVE_CIRCLE)
@@ -149,13 +149,13 @@ class Robot:
                 self.counters[C_WAITING] += 1
 
                 self.set_upper_leds(color=Color.CYAN)
-                self.robobo.moveTiltTo(degrees=100, speed=TILT_SPEED)
+                self.robobo.moveTiltTo(degrees=75, speed=TILT_SPEED)
         elif situation == R_SIT_DECIDE:
             if DEBUG_MODE:
                 print("Deciding...")
                 time.sleep(1)
             else:
-                self.robobo.sayText(robotext.waiting[self.counters[C_TURN] % len(robotext.waiting)])
+                self.robobo.sayText(robotext.robot_turn[self.counters[C_TURN] % len(robotext.waiting)])
                 #print(robotext.robot_turn[self.counters[C_TURN] % len(robotext.robot_turn)])
 
                 self.robobo.movePanTo(degrees=-10, speed=PAN_SPEED)
@@ -190,7 +190,7 @@ class Robot:
             else:
                 self.robobo.setEmotionTo(Emotions.HAPPY)
 
-                self.robobo.sayText(robotext.waiting[self.counters[C_AGREEMENT] % len(robotext.waiting)])
+                self.robobo.sayText(robotext.agreement[self.counters[C_AGREEMENT] % len(robotext.agreement)])
                 #print(robotext.agreement[self.counters[C_AGREEMENT] % len(robotext.agreement)])
                 self.counters[C_AGREEMENT] += 1
         elif situation == R_NEG_YIELD:
@@ -223,7 +223,7 @@ class Robot:
             if DEBUG_MODE:
                 print("Yay! Thanks")
             else:
-                self.robobo.setEmotionTo(Emotions.HAPPY)
+                self.robobo.setEmotionTo(Emotions.LAUGHING)
                 self.robobo.sayText("Thanks!")
 
     def base_moves(self, move, mode=MODE_VS, one_way=False, neg_stage=NEG_STAGE_NONE):

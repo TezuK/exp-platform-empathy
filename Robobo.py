@@ -6,6 +6,9 @@ from utils.Acceleration import Acceleration
 from utils.Orientation import Orientation
 from utils.Tap import Tap
 import time
+import random
+from const_def import *
+
 
 class Robobo:
 
@@ -187,6 +190,7 @@ class Robobo:
         self.rem.playEmotionSound(sound)
 
     def sayText(self, speech, wait = True):
+        print(speech)
         """
         Commands the robot to say the specified text
 
@@ -453,11 +457,16 @@ class Robobo:
         :return: The battery level of the base or the smartphone
         :rtype: int
         """
-
-        if device == "phone":
-            return self.rem.state.phoneBattery
+        if DEBUG_MODE:
+            if device == "phone":
+                return random.randint(0, 100)
+            else:
+                return random.randint(0, 100)
         else:
-            return self.rem.state.baseBattery
+            if device == "phone":
+                return self.rem.state.phoneBattery
+            else:
+                return self.rem.state.baseBattery
 
     def readNoiseLevel(self):
         return self.rem.state.noise

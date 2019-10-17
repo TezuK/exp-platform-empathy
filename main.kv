@@ -22,7 +22,15 @@
             rgba: 1, .1, .1, .9
         Line:
             width: 5
-            rectangle: (508, 0, 290, 250)
+            rectangle: (508, 40, 290, 210)
+
+<BatteryUI>:
+    canvas:
+        Color:
+            rgba: 1, 1, 1, .9
+        Line:
+            width: 5
+            rectangle: (507, 0, 290, 30)
 
 <Player>:
     size: 20, 20 
@@ -37,6 +45,7 @@
     robotui: robot_ui
     humanui: human_ui
     systemui: system_ui
+    batteryui: battery_ui
     exitsign: exit_sign
 
     canvas:
@@ -63,6 +72,9 @@
 
     SystemUI:
         id: system_ui
+
+    BatteryUI:
+        id: battery_ui
 
     RelativeLayout:
         id: emotion_layout
