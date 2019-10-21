@@ -1,7 +1,7 @@
 from const_def import *
 import mazeclass
 from maze_def import MazeDef
-
+from datetime import datetime
 
 def check_if_visible(pos_x, pos_y, robot_map):
     if robot_map[pos_x][pos_y] != BLOCK_UNKNOWN or \
@@ -245,23 +245,42 @@ def replace_conflict(robot_map):
     return robot_map
 
 
-def write_log(current_mov=[], game_mode="", turn_count=0, current_turn="", conflict=False, one_way=False, emotion=None):
+def write_log(current_mov=[], game_mode="", turn_count=-1, player="", one_way=False, backtracking=False,
+              emotion=None, negotiation=False, neg_time=0.0, neg_reason="", summary=False, total_time=0.0, neg_count=0):
     file = open("logs.txt", "a+")
+    message = ""
 
-    if not emotion:
-        if one_way:
-            current_turn = TURN_AUTO
+    if turn_count == 1:
+        message += "[" + str(datetime.now()) + "] *" + game_mode + " MODE START*\n"
 
-        if turn_count == 1:
-            file.write(game_mode + "MODE \n")
+    if LOG_SHOW_TIMESTAMP:
+        message += "[" + str(datetime.now()) + "] "
+
+    if summary:
+        message = "*SUMMARY* | TOTAL TURNS: " + str(turn_count) + " | TOTAL TIME: " + str(total_time)
+        if game_mode == MODE_COOP:
+            message += " | NEGOTIATIONS: " + str(neg_count)
+    elif current_mov == [] and emotion is not None:
+        message += "*EMOTION CHANGE* | " + str(emotion)
+    elif negotiation:
+        message += "*NEGOTIATION* | WINNER: " + player + " | TIME: " + str(neg_time) + " | REASON: " + neg_reason
+    else:
+        if backtracking:
+            player = "BACKTRACKING"
+        elif one_way and AUTO_MODE:
+            player = "AUTO"
+
+        if LOG_SHOW_EMOTION:
+            message += "EMOTION: " + emotion + " | "
+
+        if LOG_SHOW_TURN:
+            message += "TURN: " + str(turn_count) + " | "
 
         if game_mode == MODE_VS:
-            file.write(str(turn_count) + "|" + current_turn + ": "
-                       + "Move => [" + str(current_mov[0]) + "," + str(current_mov[1]) + "]\n")
-        else:
-            file.write(str(turn_count) + "|" + str(conflict) + ": " +
-                       "Move => [" + str(current_mov[0]) + "," + str(current_mov[1]) + "]\n")
-    else:
-        file.write("EMOTION CHANGE: " + str(emotion) + "]\n")
+            message += player + " | "
 
+        if LOG_SHOW_MOVEMENT:
+            message += "MOVE => [" + str(current_mov[0]) + "," + str(current_mov[1]) + "]"
+
+    file.write(message + "\n")
     file.close()

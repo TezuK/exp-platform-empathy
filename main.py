@@ -207,6 +207,8 @@ class MainGame(Widget):
                 elif keycode[1] == '5':
                     choice = P_NEG_YIELD
                     available = True
+                    background.write_log(player=TURN_ROBOT, negotiation=True,
+                                         neg_reason="YIELD")
 
                 if choice != PLAYER_NONE and available:
                     neg_choice = True
@@ -302,6 +304,7 @@ class MainGame(Widget):
             self.robot_react()
             self.turn_count += 1
             self.change_active_emotion()
+
             # show the exit if activated
             if SHOW_EXIT:
                 size = [500/MAZE_SIZE, 500/MAZE_SIZE]
@@ -466,6 +469,8 @@ class MainGame(Widget):
                                 self.next_step = self.player_choice
                                 self.decisions_taken[0] += 1
                                 self.last_decision = TURN_PLAYER
+                                background.write_log(player=self.last_decision, negotiation=True,
+                                                     neg_reason="YIELD")
                             else:
                                 # do a robot cue with more emphasis if it is the 2nd step
                                 if self.neg_stage != NEG_STAGE_1:
@@ -514,8 +519,9 @@ class MainGame(Widget):
                 else:
                     self.robot_react(one_way, backtrack)
 
-                background.write_log(self.next_step, self.game_mode, self.turn_count,
-                                     self.current_turn, self.neg_stage, one_way)
+                background.write_log(current_mov=self.next_step, game_mode=self.game_mode, turn_count=self.turn_count,
+                                     player=self.current_turn, one_way=one_way, backtracking=backtrack,
+                                     emotion=self.player_feel)
                 self.turn_count += 1
                 self.emotion_count += 1
                 self.neg_stage = NEG_STAGE_NONE
@@ -554,6 +560,7 @@ class MainGame(Widget):
 
             self.neg_stage = NEG_STAGE_AGREE
             self.toss_time = time.time()
+            background.write_log(player=self.last_decision, negotiation=True, neg_reason="COIN TOSS")
         elif self.neg_stage == NEG_STAGE_AGREE and time.time() - self.toss_time > 2:
             # option to reveal the winner on screen
             self.waiting_toss = False

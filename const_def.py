@@ -1,4 +1,6 @@
-# System configuration constants
+# ----------------------------------------
+#     System configuration parameters
+# ----------------------------------------
 ROBOT_IP = '192.168.1.126'
 MAZE_SIZE = 7               # in squares
 START_SELECT = "ROBOT"      # ROBOT / HUMAN
@@ -14,6 +16,14 @@ EMOTION_TURNS = 10          # Number of turn spacing that the human will be prom
                             # this turn count refers to the total turn count, including the robot
 R_SAME_CNT = 3              # Number of same actions it turns to auto mode
 MAX_DISPLAY_LINES = 10
+
+# ----------------------------------------
+#       Log Configuration parameters
+# ----------------------------------------
+LOG_SHOW_TIMESTAMP = True       # Show timestamp on each line
+LOG_SHOW_TURN = True            # Show turn count on each line
+LOG_SHOW_MOVEMENT = True        # Show destination of each action
+LOG_SHOW_EMOTION = True         # Show current emotion on each line
 
 # Robot configuration constants
 TIME_TURN = 1
