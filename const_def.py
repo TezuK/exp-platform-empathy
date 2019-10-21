@@ -4,18 +4,20 @@
 ROBOT_IP = '192.168.1.126'
 MAZE_SIZE = 7               # in squares
 START_SELECT = "ROBOT"      # ROBOT / HUMAN
-FIXED_MAP = 2               # Use the predetermined maps. 0 => Random, 1 or 2 for defined in maze_def.py
-DEBUG_MODE = True           # If True doesn't use the robot
+FIXED_MAP = 1               # Use the predetermined maps. 0 => Random, 1 or 2 for defined in maze_def.py
+DEBUG_MODE = False          # If True doesn't use the robot
 SHOW_ALL = False            # If True, show the whole map
 COIN_PERCENTAGE = 50        # To use the coin when no option is available. 0> No use, 100> Always use
 PRE_NEG_CHOICES = 2
-AUTO_MODE = False            # Autopilot mode that will move automatically if there is no other choice
+AUTO_MODE = False           # Autopilot mode that will move automatically if there is no other choice
 SHOW_EXIT = True            # If True, it will show a sign on the exit block
-EMOTION_MANDATORY = False   # If True, emotion input is mandatory and user can't do anything until it is selected
+EMOTION_MANDATORY = True    # If True, emotion input is mandatory and user can't do anything until it is selected
 EMOTION_TURNS = 10          # Number of turn spacing that the human will be prompted to give emotion feedback
                             # this turn count refers to the total turn count, including the robot
 R_SAME_CNT = 3              # Number of same actions it turns to auto mode
 MAX_DISPLAY_LINES = 10
+LANGUAGE = 'ES'		    # Language to use: ES or EN
+
 
 # ----------------------------------------
 #       Log Configuration parameters
@@ -28,7 +30,7 @@ LOG_SHOW_EMOTION = True         # Show current emotion on each line
 # Robot configuration constants
 TIME_TURN = 1
 TIME_STRAIGHT = 0.5
-TILT_SPEED = 30
+TILT_SPEED = 50
 PAN_SPEED = 40
 
 # Menu Selection
@@ -142,8 +144,14 @@ NEG_STAGE_2 = "Negotiation Second Round"
 NEG_STAGE_AGREE = "Agreement"
 
 # Robot counter message array positions
-C_WAITING = 0
-C_MOVEMENT = 1
-C_AGREEMENT = 2
-C_TURN = 3
-C_BACKTRACK = 4
+C_WAITING     = 0
+C_MOVEMENT    = 1
+C_AGREEMENT   = 2
+C_NEG_R_YIELD = 3
+C_TURN        = 4
+C_BACKTRACK   = 5
+C_DOWN        = 6
+C_RIGHT       = 7
+C_LEFT        = 8
+C_UP          = 9
+C_DEADEND     = 10
