@@ -83,7 +83,7 @@ class Robot:
         self.talk("I'm Robobo")
         self.robobo.setEmotionTo(Emotions.HAPPY)
 
-    def make_action(self, situation, move="", mode=MODE_VS, one_way=False, neg_stage=NEG_STAGE_NONE):
+    def make_action(self, situation, move="", mode=MODE_VS, one_way=False, neg_stage=NEG_STAGE_NONE, neg_option=-1):
         if not DEBUG_MODE:
             self.reset_state()
 
@@ -114,6 +114,7 @@ class Robot:
             else:
                 self.robobo.setEmotionTo(Emotions.LAUGHING)
                 self.robobo.setLedColorTo(led=LED.All, color=Color.BLUE)
+                self.robobo.sayText(robotext.finish)
                 self.robobo.playSound(sound=Sounds.LAUGH)
                 self.do_movement(R_MOVE_CIRCLE)
         elif situation == R_SIT_AUTO:
@@ -155,6 +156,7 @@ class Robot:
                 print("Waiting for direction input...")
                 time.sleep(DEBUG_TIME)
             else:
+                self.robobo.setEmotionTo(Emotions.NORMAL)
                 self.robobo.sayText(robotext.waiting[self.counters[C_WAITING] % len(robotext.waiting)], wait=False)
                 self.set_upper_leds(color=Color.CYAN)
                 self.robobo.moveTiltTo(degrees=75, speed=TILT_SPEED)
@@ -164,6 +166,7 @@ class Robot:
                 print("Deciding...")
                 time.sleep(DEBUG_TIME)
             else:
+                self.robobo.setEmotionTo(Emotions.NORMAL)
                 self.robobo.sayText(robotext.robot_turn[self.counters[C_TURN] % len(robotext.robot_turn)], wait=False)
                 self.robobo.movePanTo(degrees=-10, speed=PAN_SPEED)
                 self.robobo.movePanTo(degrees=10, speed=PAN_SPEED)
@@ -171,13 +174,22 @@ class Robot:
                 self.set_upper_leds(color=Color.CYAN)
                 self.base_moves(move, mode, one_way)
                 self.counters[C_TURN] += 1
+        elif situation == R_SIT_FAIL:
+            if DEBUG_MODE:
+                print("Ow... We lost")
+                time.sleep(DEBUG_TIME)
+            else:
+                self.robobo.setEmotionTo(Emotions.SAD)
+                self.robobo.sayText(robotext.end_failure[1])
+                self.robobo.setLedColorTo(LED.All, color=Color.RED)
+                self.robobo.moveTiltTo(degrees=130, speed=TILT_SPEED)
         elif situation == R_NEG_WAITING:
             if DEBUG_MODE:
                 print("Waiting for direction input...")
                 time.sleep(DEBUG_TIME)
             else:
                 self.base_moves(move, mode, one_way, neg_stage)
-
+                self.robobo.setEmotionTo(Emotions.NORMAL)
                 self.robobo.sayText(robotext.waiting[self.counters[C_WAITING] % len(robotext.waiting)])
                 self.set_upper_leds(color=Color.CYAN)
                 self.robobo.moveTiltTo(degrees=75, speed=TILT_SPEED)
@@ -185,11 +197,16 @@ class Robot:
         elif situation == R_NEG_RND_1:
             if DEBUG_MODE:
                 print("Negotiation round 1...")
+                if neg_option != -1:
+                    print(robotext.deciding[neg_option][3:])
                 time.sleep(DEBUG_TIME)
             else:
+                self.robobo.setEmotionTo(Emotions.NORMAL)
                 self.robobo.playSound(Sounds.THINKING)
                 self.set_upper_leds(color=Color.CYAN)
                 self.robobo.moveTiltTo(degrees=100, speed=TILT_SPEED)
+                if neg_option != -1:
+                    self.robobo.sayText(robotext.deciding[neg_option][3:])
         elif situation == R_NEG_AGREE:
             if DEBUG_MODE:
                 print("Happy there is an agreement!")
@@ -212,7 +229,10 @@ class Robot:
             if DEBUG_MODE:
                 print("Tossing coin~")
             else:
-                if move == TURN_ROBOT:
+                self.robobo.setEmotionTo(Emotions.NORMAL)
+                if move is None:
+                    self.robobo.sayText(robotext.toss_coin)
+                elif move == TURN_ROBOT:
                     # print("ROBOT SIGN")
                     self.robobo.playNote(note=60, duration=0.5, wait=False)
                     self.robobo.movePanTo(degrees=-5, speed=PAN_SPEED * 2, wait=False)
@@ -289,7 +309,6 @@ class Robot:
             self.counters[C_MOVEMENT] += 1
 
     def reset_state(self):
-        self.robobo.setEmotionTo(Emotions.NORMAL)
         self.robobo.setLedColorTo(LED.All, color=Color.OFF)
         self.robobo.movePanTo(degrees=0, speed=20)
         self.robobo.moveTiltTo(degrees=85, speed=20)

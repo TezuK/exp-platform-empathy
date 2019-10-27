@@ -58,3 +58,8 @@ backtrack = ["regresemos",
              "vuelta atrás",
              "nos hemos equivocao, hay que retroceder"]
 
+finish = "lo conseguimos"
+toss_coin = "tiremos una moneda"
+end_failure = ["Sorry...", "I'm afraid we ran out of time", "", "Press Q to Quit."]
+end_win = ["CONGRATULATIONS!!", "WE FOUND THE EXIT!!", "", "Press Q to Quit."]
+

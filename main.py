@@ -16,6 +16,11 @@ import negotiationclass
 import time
 from random import randint
 
+if LANGUAGE == 'ES':
+    import robotext_ES as robotext
+elif LANGUAGE == 'EN':
+    import robotext_EN as robotext
+
 
 class Player(Widget):
     def move(self, robot_pos):
@@ -155,11 +160,13 @@ class MainGame(Widget):
         self.one_way = False
         self.backtrack = False
         self.take_step = False
+        self.time = time.time()
 
         # Decisions taken in negotiation from the [Robot,Human] & Dead End encounters due to their decisions
         self.decisions_taken = [0, 0]
         self.deadend_count = [0, 0]
         self.last_decision = None
+        self.robot_neg = -1
 
         # Keyboard inputs
         self._keyboard = Window.request_keyboard(self._keyboard_closed, self)
@@ -312,7 +319,14 @@ class MainGame(Widget):
 
     def game_logic(self):
         self.robot_action = None
-        if self.take_step:
+
+        if time.time() - self.time > TIME_LIMIT*60 and not self.waiting_input:
+            self.clean_message_ui()
+            self.message_generalui = robotext.end_failure
+            self.robot_action = R_SIT_FAIL
+            self.game_mode = MODE_FINISH
+            self.waiting_input = True
+        elif self.take_step:
             self.robot_pos = self.next_step
             self.take_step = False
 
@@ -388,7 +402,7 @@ class MainGame(Widget):
                         # if the emotion is angry or for the first two decisions, robot will have to yield
                         elif self.player_feel == EMOTION_ANGRY or \
                                 (self.decisions_taken[0] + self.decisions_taken[1] < PRE_NEG_CHOICES):
-                            self.message_robotui = ["Lets try it your way"]
+                            self.message_robotui = ["Let's try it your way"]
                             self.robot_action = R_NEG_YIELD
                             self.neg_stage = NEG_STAGE_AGREE
                             self.decisions_taken[1] += 1
@@ -430,7 +444,7 @@ class MainGame(Widget):
                                 self.message_robotui = ["Toss the coin!"]
                             elif robot_neg_choice == P_NEG_YIELD:
                                 self.neg_stage = NEG_STAGE_AGREE
-                                self.message_robotui = ["Lets try it your way"]
+                                self.message_robotui = ["Let's try it your way"]
                                 self.robot_action = R_NEG_YIELD
                                 self.next_step = self.player_choice
                                 self.decisions_taken[0] += 1
@@ -444,6 +458,7 @@ class MainGame(Widget):
                                     self.robot_action = R_NEG_WAITING
                                 else:
                                     self.robot_action = R_NEG_RND_1
+                                    self.robot_neg = robot_neg_choice
 
                                 self.message_humanui = self.negotiation.get_display_msg()
                                 self.waiting_input = True
@@ -453,7 +468,7 @@ class MainGame(Widget):
                                                     self.negotiation.arg_description[robot_neg_choice][2:], ""]
                             self.negotiation.mark_as_used(arg_number=robot_neg_choice)
                             # Coin toss
-                            if robot_neg_choice == 3:
+                            if robot_neg_choice == P_NEG_COIN:
                                 self.coin_toss(init=True)
             else:
                 self.next_step = self.robot_choice
@@ -490,7 +505,7 @@ class MainGame(Widget):
             self.coin_toss()
         elif not self.waiting_input and self.solved:
             self.clean_message_ui()
-            self.message_generalui = ["CONGRATULATIONS!!", "WE FOUND THE EXIT!!", "", "Press Q to Quit."]
+            self.message_generalui = robotext.end_win
             self.change_maze_color()
             self.robot_action = R_SIT_WIN
             self.game_mode = MODE_FINISH
@@ -528,11 +543,13 @@ class MainGame(Widget):
     def game_robot(self):
         walls = self.maze.mmap[self.robot_pos[0]][self.robot_pos[1]].walls
 
-        if self.robot_action == R_SIT_DECIDE or R_NEG_WAITING:
+        if self.robot_action == R_SIT_DECIDE or self.robot_action == R_NEG_WAITING:
             self.robot.make_action(situation=self.robot_action,
                                    move=background.move_translate(self.robot_choice, self.robot_choice),
                                    mode=self.game_mode, one_way=self.one_way or self.backtrack,
                                    neg_stage=self.neg_stage)
+        elif self.robot_action == R_NEG_RND_1:
+            self.robot.make_action(situation=self.robot_action, neg_option=self.robot_neg)
         elif self.robot_action == R_NEG_COIN:
             self.robot.make_action(situation=self.robot_action, move=self.current_toss)
         else:
@@ -581,18 +598,21 @@ class MainGame(Widget):
             self.message_systemui = ["Tossing coin"]
             self.toss_counter += 1
             self.toss_aux = 0
-
-        if self.neg_stage != NEG_STAGE_AGREE and self.toss_aux > 3:
+            self.robot_action = R_NEG_COIN
+            self.current_toss = None
+        elif self.neg_stage != NEG_STAGE_AGREE and self.toss_aux > 3:
             # Clean screen and show the winner
             self.clean_message_ui()
             if randint(0, 1) == 1:
-                self.message_robotui = ["My turn!"]
+                self.message_robotui = ["My turn!",
+                                        "Let's go " + background.pos_to_input(self.robot_pos, self.robot_choice)]
                 self.next_step = self.robot_choice
                 self.robot_action = R_NEG_AGREE
                 self.decisions_taken[0] += 1
                 self.last_decision = TURN_ROBOT
             else:
-                self.message_humanui = ["Your turn!"]
+                self.message_humanui = ["Your turn!",
+                                        "Let's go " + background.pos_to_input(self.robot_pos, self.player_choice)]
                 self.next_step = self.player_choice
                 self.robot_action = R_NEG_LOSE
                 self.decisions_taken[1] += 1

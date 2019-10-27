@@ -3,6 +3,7 @@ import mazeclass
 from maze_def import MazeDef
 from datetime import datetime
 
+
 def check_if_visible(pos_x, pos_y, robot_map):
     if robot_map[pos_x][pos_y] != BLOCK_UNKNOWN or \
             ((pos_x - 1 >= 0) and (robot_map[pos_x - 1][pos_y] != BLOCK_UNKNOWN)) or \
@@ -49,7 +50,7 @@ def maze_solving(maze, robot_map, current_pos):
         backtrack = True
         # If we have to backtrack, then consider player discarded actions
         robot_map = replace_conflict(robot_map)
-    elif sum(walls) + walls_discarded + walls_passed == 3 or current_pos == [0, 0]:
+    elif sum(walls) + walls_discarded + walls_passed == 3:
         one_way = True
 
     # If the path down is open & is not the end, go down

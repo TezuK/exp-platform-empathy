@@ -4,6 +4,7 @@
 ROBOT_IP = '192.168.1.126'
 MAZE_SIZE = 7               # in squares
 START_SELECT = "ROBOT"      # ROBOT / HUMAN
+TIME_LIMIT = 10             # Time limit (in minutes) for the challenge, if it meets then the test ends
 FIXED_MAP = 1               # Use the predetermined maps. 0 => Random, 1 or 2 for defined in maze_def.py
 DEBUG_MODE = True          # If True doesn't use the robot
 DEBUG_TIME = 0.75           # Sleep time on debug mode
@@ -125,6 +126,7 @@ R_SIT_AUTO = "1c"
 R_SIT_BACKTRACK = "1d"
 R_SIT_WAITING = "1e"
 R_SIT_DECIDE = "1f"
+R_SIT_FAIL = "1g"
 R_NEG_WAITING = "Waiting input"
 R_NEG_AGREE = "Both Agree"
 R_NEG_YIELD = "Robot Yield"
@@ -138,9 +140,9 @@ R_AGREE = "5"
 R_SAME_CHOICE = "6"
 
 # Player situations
-P_NEG_CH1 = "Choice 1"
-P_NEG_CH2 = "Choice 2"
-P_NEG_CH3 = "Choice 3"
+P_NEG_CH1 = 0
+P_NEG_CH2 = 1
+P_NEG_CH3 = 2
 P_NEG_COIN = 3
 P_NEG_YIELD = 4
 
