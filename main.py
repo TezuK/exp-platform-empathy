@@ -28,7 +28,7 @@ class Player(Widget):
 class RobotUI(Widget):
     labels = []
 
-    def display_on_screen(self, message=[], init=False, mode=MODE_VS):
+    def display_on_screen(self, message=[], init=False):
         with self.canvas:
             if init:
                 # init the lines of the display
@@ -37,18 +37,17 @@ class RobotUI(Widget):
                                              color=[.1, .1, 1, .9], bold=True, markup=True))
 
             for i in range(0, MAX_DISPLAY_LINES):
-                # in VS Mode only use the center
-                if mode == MODE_VS:
-                    if len(message) != 0 and i == 0:
-                        self.labels[2].text = "[size=40sp]" + message[i] + "[/size]"
-                    elif len(message) == 0:
-                        self.labels[i].text = ""
-                # other type of display in negotiation
+                # if it is only one line display it on the center and big size
+                if len(message) == 1 or i >= len(message):
+                    self.labels[i].text = ""
                 else:
-                    if i < len(message):
-                        self.labels[i].text = message[i]
-                    else:
-                        self.labels[i].text = ""
+                    self.labels[i].text = message[i]
+
+            if len(message) == 1:
+                if len(message[0]) < 20:
+                    self.labels[2].text = "[size=40sp]" + message[0] + "[/size]"
+                else:
+                    self.labels[0].text = message[0]
 
 
 class SystemUI(Widget):
@@ -68,13 +67,13 @@ class SystemUI(Widget):
                 else:
                     self.labels[1].text = "[size=40sp]" + message[0] + "[/size]"
             elif len(message) == 0:
-                self.labels[i].text = ""
+                self.labels[1].text = ""
 
 
 class HumanUI(Widget):
     labels = []
 
-    def display_on_screen(self, message=[], init=False, mode=MODE_VS):
+    def display_on_screen(self, message=[], init=False):
         with self.canvas:
             if init:
                 # init the lines of the display
@@ -83,18 +82,17 @@ class HumanUI(Widget):
                                              color=[1, .1, .1, .9], bold=True, markup=True))
 
             for i in range(0, MAX_DISPLAY_LINES):
-                # in VS Mode only use the center
-                if mode == MODE_VS:
-                    if len(message) != 0 and i == 0:
-                        self.labels[2].text = "[size=40sp]" + message[i] + "[/size]"
-                    elif len(message) == 0:
-                        self.labels[i].text = ""
-                # other type of display in negotiation
+                # if it is only one line display it on the center and big size
+                if len(message) == 1 or i >= len(message):
+                    self.labels[i].text = ""
                 else:
-                    if i < len(message):
-                        self.labels[i].text = message[i]
-                    else:
-                        self.labels[i].text = ""
+                    self.labels[i].text = message[i]
+
+            if len(message) == 1:
+                if len(message[0]) < 20:
+                    self.labels[2].text = "[size=40sp]" + message[0] + "[/size]"
+                else:
+                    self.labels[0].text = message[0]
 
 
 class BatteryUI(Widget):
@@ -139,10 +137,9 @@ class MainGame(Widget):
         self.robot_pos = [0, 0]  # [x, y]
         self.player_feel = EMOTION_NEUTRAL
         self.current_turn = START_SELECT
-        self.waiting_input = False
+        self.waiting_input = True
         self.action_done = False
         self.emotions = [EMOTION_ANGRY, EMOTION_BAD, EMOTION_NEUTRAL, EMOTION_SMILE, EMOTION_HAPPY]
-        self.message_counter = 0
         self.neg_stage = NEG_STAGE_NONE
         self.negotiation = negotiationclass.Negotiation()
         self.labels = []
@@ -153,6 +150,11 @@ class MainGame(Widget):
         self.waiting_toss = False
         self.next_step = None
         self.emotion_count = 0
+        self.current_state = STATE_UI
+        self.robot_action = None
+        self.one_way = False
+        self.backtrack = False
+        self.take_step = False
 
         # Decisions taken in negotiation from the [Robot,Human] & Dead End encounters due to their decisions
         self.decisions_taken = [0, 0]
@@ -164,12 +166,15 @@ class MainGame(Widget):
         self._keyboard.bind(on_key_down=self._on_keyboard_down)
 
         # selection screen
-        self.display_on_screen(message=["Press key to select Mode:", "1. Turns", "2. Cooperative", "3. Presentation"],
-                               init=True)
-        self.robotui.display_on_screen(message=[""], init=True)
-        self.systemui.display_on_screen(message=[""], init=True)
-        self.humanui.display_on_screen(message=[""], init=True)
+        self.display_on_screen(init=True)
+        self.robotui.display_on_screen(init=True)
+        self.systemui.display_on_screen(init=True)
+        self.humanui.display_on_screen(init=True)
         self.batteryui.display_on_screen(robot=self.robot, init=True)
+        self.message_generalui = ["Press key to select Mode:", "1. Turns", "2. Cooperative", "3. Presentation"]
+        self.message_robotui = []
+        self.message_humanui = []
+        self.message_systemui = []
 
     def _keyboard_closed(self):
         self._keyboard.unbind(on_key_down=self._on_keyboard_down)
@@ -180,7 +185,8 @@ class MainGame(Widget):
         neg_choice = False
         available = False
 
-        if self.waiting_input and not (EMOTION_MANDATORY and self.emotion_count >= EMOTION_TURNS):
+        if self.waiting_input and not (EMOTION_MANDATORY and self.emotion_count >= EMOTION_TURNS) or \
+                self.game_mode == MODE_FINISH:
             if self.game_mode == MODE_VS or (self.game_mode == MODE_COOP and self.neg_stage == NEG_STAGE_START):
                 if keycode[1] == 'up':
                     choice = PLAYER_UP
@@ -252,7 +258,7 @@ class MainGame(Widget):
                 self.change_active_emotion()
                 background.write_log(emotion=self.player_feel)
                 self.emotion_count = 0
-                self.systemui.display_on_screen([""])
+                self.message_systemui= [""]
                 if DEBUG_MODE:
                     print(self.player_feel)
 
@@ -286,44 +292,252 @@ class MainGame(Widget):
                 else:
                     self.labels[i].text = ""
 
-        self.message_counter += 1
-
-    def clean_screen(self):
-        self.display_on_screen([""])
-        self.robotui.display_on_screen(message=[""], mode=self.game_mode)
-        self.systemui.display_on_screen(message=[""])
-        self.humanui.display_on_screen(message=[""], mode=self.game_mode)
+    def clean_message_ui(self):
+        self.message_generalui = []
+        self.message_robotui = []
+        self.message_systemui = []
+        self.message_humanui = []
 
     def update(self, dt):
+        if self.current_state == STATE_LOGIC:
+            self.game_logic()
+            self.current_state = STATE_UI
+        elif self.current_state == STATE_UI:
+            self.game_ui()
+            self.current_state = STATE_ROBOT
+        else:
+            if self.robot_action is not None:
+                self.game_robot()
+            self.current_state = STATE_LOGIC
 
+    def game_logic(self):
+        self.robot_action = None
+        if self.take_step:
+            self.robot_pos = self.next_step
+            self.take_step = False
+
+            if sum(self.maze.mmap[self.next_step[0]][self.next_step[1]].walls) > 2 and not self.solved:
+                if self.last_decision == TURN_ROBOT:
+                    self.deadend_count[0] += 1
+                else:
+                    self.deadend_count[1] += 1
+                self.robot_action = R_SIT_DEAD_END
+                self.message_robotui = ["Owwwwwww..."]
+        elif not self.waiting_input and not self.waiting_toss and not self.solved:
+            self.clean_message_ui()
+            if self.emotion_count >= EMOTION_TURNS:
+                self.message_systemui = ["Please select emotion"]
+
+            # Get robot's next possible choice
+            [self.robot_choice, self.backtrack, self.one_way, special] = background.maze_solving(self.maze,
+                                                                                                 self.robot_map,
+                                                                                                 self.robot_pos)
+            if special:
+                self.robot_map[self.robot_pos[0]][self.robot_pos[1]] = BLOCK_CONFLICT
+
+            if not self.backtrack and (not AUTO_MODE or (AUTO_MODE and not self.one_way and not self.backtrack)):
+                # VS Mode logic
+                if self.game_mode == MODE_VS:
+                    if self.current_turn == TURN_ROBOT:
+                        self.next_step = self.robot_choice
+                        self.prev_r_pos = self.robot_pos
+                        self.current_turn = TURN_PLAYER
+                        self.robot_action = R_SIT_DECIDE
+                        self.message_robotui = ["Deciding..."]
+                    else:
+                        # Get player's next choice
+                        if self.player_choice == PLAYER_NONE:
+                            self.waiting_input = True
+                            self.message_humanui = ["Your turn!!"]
+                            self.robot_action = R_SIT_WAITING
+                        # Process player's choice
+                        elif self.player_choice != PLAYER_NONE:
+                            self.next_step = self.player_choice
+                            self.current_turn = TURN_ROBOT
+                # Cooperation Mode logic
+                else:
+                    # Do the previous inquiry before starting the negotiation
+                    if self.neg_stage == NEG_STAGE_NONE:
+                        if self.current_turn == TURN_ROBOT:
+                            trad_choice = background.pos_to_input(self.robot_pos, self.robot_choice)
+                            self.message_robotui = ["I want to go " + trad_choice, "Where do you want to go?"]
+                        else:
+                            self.message_robotui = ["Where do you want to go?"]
+
+                        self.neg_stage = NEG_STAGE_START
+                        self.waiting_input = True
+                        self.robot_action = R_NEG_WAITING
+                    # Start the negotiation
+                    elif self.neg_stage == NEG_STAGE_START:
+                        # if the choice of the two is the same then finish it directly
+                        if self.robot_choice == self.player_choice:
+                            self.message_robotui = ["We thought the same! Nice!"]
+                            self.robot_action = R_NEG_AGREE
+                            self.neg_stage = NEG_STAGE_AGREE
+                            self.next_step = self.robot_choice
+                            self.take_step = True
+
+                            # Give the decision counter to the first that suggested it
+                            if COUNT_SAME_DEC:
+                                if not self.one_way and not self.backtrack and self.current_turn == TURN_ROBOT:
+                                    self.decisions_taken[0] += 1
+                                    self.last_decision = TURN_ROBOT
+                                elif not self.one_way and not self.backtrack:
+                                    self.decisions_taken[1] += 1
+                                    self.last_decision = TURN_PLAYER
+                        # if the emotion is angry or for the first two decisions, robot will have to yield
+                        elif self.player_feel == EMOTION_ANGRY or \
+                                (self.decisions_taken[0] + self.decisions_taken[1] < PRE_NEG_CHOICES):
+                            self.message_robotui = ["Lets try it your way"]
+                            self.robot_action = R_NEG_YIELD
+                            self.neg_stage = NEG_STAGE_AGREE
+                            self.decisions_taken[1] += 1
+                            self.last_decision = TURN_PLAYER
+                            self.next_step = self.player_choice
+                            self.take_step = True
+                        else:
+                            self.neg_stage = NEG_STAGE_1
+                    # if there is any input pending from the user
+                    elif self.player_neg_choice != PLAYER_NONE:
+                        if self.player_neg_choice == P_NEG_YIELD:
+                            self.next_step = self.robot_choice
+                            self.neg_stage = NEG_STAGE_AGREE
+                            self.message_robotui = ["Thanks!"]
+                            self.robot_action = R_NEG_WIN
+                            self.decisions_taken[0] += 1
+                            self.last_decision = TURN_ROBOT
+                            self.take_step = True
+                        elif self.player_neg_choice == P_NEG_COIN:
+                            self.coin_toss(init=True)
+                        else:
+                            self.neg_stage = NEG_STAGE_2
+
+                        self.player_neg_choice = PLAYER_NONE
+                    # Negotiations steps should all use the same logic
+                    elif self.neg_stage != NEG_STAGE_AGREE:
+                        self.negotiation.check_arg_availability(self.decisions_taken,
+                                                                self.deadend_count,
+                                                                self.player_feel)
+                        if self.current_turn == TURN_ROBOT:
+                            self.clean_message_ui()
+                            robot_neg_choice = self.negotiation.choose_first_avail()
+                            self.message_robotui = ["Then let's negotiate. I say that...",
+                                                    self.negotiation.arg_description[robot_neg_choice][2:], ""]
+                            self.negotiation.mark_as_used(is_robot=True, arg_number=robot_neg_choice)
+                            # Coin toss
+                            if robot_neg_choice == P_NEG_COIN:
+                                self.coin_toss(init=True)
+                                self.message_robotui = ["Toss the coin!"]
+                            elif robot_neg_choice == P_NEG_YIELD:
+                                self.neg_stage = NEG_STAGE_AGREE
+                                self.message_robotui = ["Lets try it your way"]
+                                self.robot_action = R_NEG_YIELD
+                                self.next_step = self.player_choice
+                                self.decisions_taken[0] += 1
+                                self.last_decision = TURN_PLAYER
+                                self.take_step = True
+                                background.write_log(player=self.last_decision, negotiation=True,
+                                                     neg_reason="YIELD")
+                            else:
+                                # do a robot cue with more emphasis if it is the 2nd step
+                                if self.neg_stage != NEG_STAGE_1:
+                                    self.robot_action = R_NEG_WAITING
+                                else:
+                                    self.robot_action = R_NEG_RND_1
+
+                                self.message_humanui = self.negotiation.get_display_msg()
+                                self.waiting_input = True
+                        else:
+                            robot_neg_choice = self.negotiation.choose_first_avail()
+                            self.message_robotui = ["Then let's negotiate. I say that...",
+                                                    self.negotiation.arg_description[robot_neg_choice][2:], ""]
+                            self.negotiation.mark_as_used(arg_number=robot_neg_choice)
+                            # Coin toss
+                            if robot_neg_choice == 3:
+                                self.coin_toss(init=True)
+            else:
+                self.next_step = self.robot_choice
+
+            if (self.game_mode == MODE_VS and not self.waiting_input) or \
+                    (self.game_mode == MODE_COOP and self.neg_stage == NEG_STAGE_AGREE) or \
+                    (AUTO_MODE and self.one_way) or self.backtrack:
+
+                # Update position
+                self.robot_map = background.move_position(self.robot_map, self.robot_pos, self.next_step,
+                                                          self.prev_r_pos, self.backtrack)
+                self.player_choice = PLAYER_NONE
+                self.take_step = True
+
+                # If it is a dead end, count it
+                if self.backtrack:
+                    self.robot_action = R_SIT_BACKTRACK
+                    self.message_robotui = ["Backtracking..."]
+                elif self.one_way and AUTO_MODE:
+                    self.message_robotui = ["There is only one way!"]
+                    self.robot_action = R_SIT_AUTO
+
+                if self.next_step == [MAZE_SIZE - 1, MAZE_SIZE - 1]:
+                    self.solved = True
+
+                background.write_log(current_mov=self.next_step, game_mode=self.game_mode, turn_count=self.turn_count,
+                                     player=self.current_turn, one_way=self.one_way, backtracking=self.backtrack,
+                                     emotion=self.player_feel)
+                self.turn_count += 1
+                self.emotion_count += 1
+                self.neg_stage = NEG_STAGE_NONE
+                self.negotiation.reset()
+        elif self.waiting_toss:
+            self.coin_toss()
+        elif not self.waiting_input and self.solved:
+            self.clean_message_ui()
+            self.message_generalui = ["CONGRATULATIONS!!", "WE FOUND THE EXIT!!", "", "Press Q to Quit."]
+            self.change_maze_color()
+            self.robot_action = R_SIT_WIN
+            self.game_mode = MODE_FINISH
+            self.waiting_input = True
+
+    def game_ui(self):
+        # show the exit if activated
         if self.turn_count == 0:
-            # show the first block
-            self.player.move(self.robot_pos)
-            walls_value = self.maze.mmap[0][0].walls
-            self.show_walls(maze_pos=[0, MAZE_SIZE - 1], walls_value=walls_value)
-            self.robot_react()
-            self.turn_count += 1
-            self.change_active_emotion()
-
-            # show the exit if activated
             if SHOW_EXIT:
                 size = [500/MAZE_SIZE, 500/MAZE_SIZE]
                 self.exitsign.size = [size[0]*0.8, size[1]*0.8]
                 self.exitsign.pos = [500 - size[0] + 5, 110]
             else:
                 self.exitsign.size = 0, 0
-        else:
-            self.maze_game()
-            self.player.move(self.robot_pos)
 
-            for j in range(MAZE_SIZE):
-                for i in range(MAZE_SIZE):
-                    if (SHOW_ALL or background.check_if_visible(j, MAZE_SIZE - 1 - i, self.robot_map))\
-                            and not self.painted_map[j][i]:
-                        walls_value = self.maze.mmap[j][MAZE_SIZE - 1 - i].walls
-                        self.show_walls(maze_pos=[j, i], walls_value=walls_value)
-                        self.painted_map[j][i] = True
-    
+        # show player and current emotion
+        self.player.move(self.robot_pos)
+        self.change_active_emotion()
+
+        # paint the maze
+        for j in range(MAZE_SIZE):
+            for i in range(MAZE_SIZE):
+                if (SHOW_ALL or background.check_if_visible(j, MAZE_SIZE - 1 - i, self.robot_map)) \
+                        and not self.painted_map[j][i]:
+                    walls_value = self.maze.mmap[j][MAZE_SIZE - 1 - i].walls
+                    self.show_walls(maze_pos=[j, i], walls_value=walls_value, win=self.solved)
+                    self.painted_map[j][i] = True
+
+        self.display_on_screen(message=self.message_generalui)
+        self.robotui.display_on_screen(message=self.message_robotui)
+        self.systemui.display_on_screen(message=self.message_systemui)
+        self.humanui.display_on_screen(message=self.message_humanui)
+        self.batteryui.display_on_screen(robot=self.robot)
+
+    def game_robot(self):
+        walls = self.maze.mmap[self.robot_pos[0]][self.robot_pos[1]].walls
+
+        if self.robot_action == R_SIT_DECIDE or R_NEG_WAITING:
+            self.robot.make_action(situation=self.robot_action,
+                                   move=background.move_translate(self.robot_choice, self.robot_choice),
+                                   mode=self.game_mode, one_way=self.one_way or self.backtrack,
+                                   neg_stage=self.neg_stage)
+        elif self.robot_action == R_NEG_COIN:
+            self.robot.make_action(situation=self.robot_action, move=self.current_toss)
+        else:
+            self.robot.make_action(situation=self.robot_action)
+
     def show_walls(self, maze_pos, walls_value, win=False):
         block_size = 500/MAZE_SIZE
         block_pos = maze_pos[0] * block_size, maze_pos[1] * block_size
@@ -360,201 +574,27 @@ class MainGame(Widget):
                 walls_value = self.maze.mmap[j][MAZE_SIZE - 1 - i].walls
                 self.show_walls(maze_pos=[j, i], walls_value=walls_value, win=True)
 
-    def maze_game(self):
-        if not self.waiting_input and not self.waiting_toss and not self.solved:
-            self.clean_screen()
-            self.batteryui.display_on_screen(robot=self.robot)
-            if self.emotion_count >= EMOTION_TURNS:
-                self.systemui.display_on_screen(["Please select emotion"])
-            # Get robot's next possible choice
-            [self.robot_choice, backtrack, one_way, special] = background.maze_solving(self.maze, self.robot_map,
-                                                                                       self.robot_pos)
-            if special:
-                self.robot_map[self.robot_pos[0]][self.robot_pos[1]] = BLOCK_CONFLICT
-
-            if not backtrack and (not AUTO_MODE or (AUTO_MODE and not one_way and not backtrack)):
-                # VS Mode logic
-                if self.game_mode == MODE_VS:
-                    if self.current_turn == TURN_ROBOT:
-                        self.next_step = self.robot_choice
-                        self.prev_r_pos = self.robot_pos
-                        self.current_turn = TURN_PLAYER
-                        self.robot.make_action(R_SIT_DECIDE,
-                                               background.move_translate(self.prev_r_pos, self.robot_choice),
-                                               self.game_mode, one_way or backtrack)
-                    else:
-                        # Get player's next choice
-                        if self.player_choice == PLAYER_NONE:
-                            self.waiting_input = True
-                            self.robot_react(one_way, backtrack)
-                        # Process player's choice
-                        elif self.player_choice != PLAYER_NONE:
-                            self.next_step = self.player_choice
-                            self.current_turn = TURN_ROBOT
-                # Cooperation Mode logic
-                else:
-                    # Do the previous inquiry before starting the negotiation
-                    if self.neg_stage == NEG_STAGE_NONE:
-                        if self.current_turn == TURN_ROBOT:
-                            trad_choice = background.pos_to_input(self.robot_pos, self.robot_choice)
-                            self.robotui.display_on_screen(["I want to go " + trad_choice, "Where do you want to go?"],
-                                                           mode=self.game_mode)
-                        else:
-                            self.robotui.display_on_screen(["Where do you want to go?"], mode=self.game_mode)
-
-                        self.neg_stage = NEG_STAGE_START
-                        self.waiting_input = True
-                        self.robot.make_action(R_NEG_WAITING,
-                                               background.move_translate(self.robot_pos, self.robot_choice),
-                                               self.game_mode, one_way or backtrack, self.neg_stage)
-                    # Start the negotiation
-                    elif self.neg_stage == NEG_STAGE_START:
-                        # if the choice of the two is the same then finish it directly
-                        if self.robot_choice == self.player_choice:
-                            self.robotui.display_on_screen(["We thought the same! Nice!"], mode=self.game_mode)
-                            self.robot.make_action(R_NEG_AGREE)
-                            self.neg_stage = NEG_STAGE_AGREE
-                            self.next_step = self.robot_choice
-
-                            # Give the decision counter to the first that suggested it
-                            if not one_way and not backtrack and self.current_turn == TURN_ROBOT:
-                                self.decisions_taken[0] += 1
-                                self.last_decision = TURN_ROBOT
-                            elif not one_way and not backtrack:
-                                self.decisions_taken[1] += 1
-                                self.last_decision = TURN_PLAYER
-                        # if the emotion is angry or for the first two decisions, robot will have to yield
-                        elif self.player_feel == EMOTION_ANGRY or \
-                                (self.decisions_taken[0] + self.decisions_taken[1] < PRE_NEG_CHOICES):
-                            self.robotui.display_on_screen(["Lets try it your way"], mode=self.game_mode)
-                            self.robot.make_action(R_NEG_YIELD)
-                            self.neg_stage = NEG_STAGE_AGREE
-                            self.decisions_taken[1] += 1
-                            self.last_decision = TURN_PLAYER
-                            self.next_step = self.player_choice
-                        else:
-                            self.neg_stage = NEG_STAGE_1
-                    # if there is any input pending from the user
-                    elif self.player_neg_choice != PLAYER_NONE:
-                        if self.player_neg_choice == P_NEG_YIELD:
-                            self.next_step = self.robot_choice
-                            self.neg_stage = NEG_STAGE_AGREE
-                            self.robot.make_action(R_NEG_WIN)
-                            self.decisions_taken[0] += 1
-                            self.last_decision = TURN_ROBOT
-                        elif self.player_neg_choice == P_NEG_COIN:
-                            self.coin_toss(init=True)
-                        else:
-                            self.neg_stage = NEG_STAGE_2
-
-                        self.player_neg_choice = PLAYER_NONE
-                    # Negotiations steps should all use the same logic
-                    elif self.neg_stage != NEG_STAGE_AGREE:
-                        self.negotiation.check_arg_availability(self.decisions_taken,
-                                                                self.deadend_count,
-                                                                self.player_feel)
-                        if self.current_turn == TURN_ROBOT:
-                            self.clean_screen()
-                            robot_neg_choice = self.negotiation.choose_first_avail()
-                            robot_neg_msg = ["Then let's negotiate. I say that...",
-                                             self.negotiation.arg_description[robot_neg_choice][2:], ""]
-                            self.robotui.display_on_screen(robot_neg_msg, mode=self.game_mode)
-                            self.negotiation.mark_as_used(is_robot=True, arg_number=robot_neg_choice)
-                            # Coin toss
-                            if robot_neg_choice == P_NEG_COIN:
-                                self.coin_toss(init=True)
-                            elif robot_neg_choice == P_NEG_YIELD:
-                                self.neg_stage = NEG_STAGE_AGREE
-                                self.robot.make_action(R_NEG_YIELD)
-                                self.next_step = self.player_choice
-                                self.decisions_taken[0] += 1
-                                self.last_decision = TURN_PLAYER
-                                background.write_log(player=self.last_decision, negotiation=True,
-                                                     neg_reason="YIELD")
-                            else:
-                                # do a robot cue with more emphasis if it is the 2nd step
-                                if self.neg_stage != NEG_STAGE_1:
-                                    self.robot.make_action(R_NEG_WAITING,
-                                                           background.move_translate(self.prev_r_pos,
-                                                                                     self.robot_choice),
-                                                           self.game_mode, one_way or backtrack, self.neg_stage)
-                                else:
-                                    self.robot.make_action(R_NEG_RND_1)
-
-                                self.humanui.display_on_screen(message=self.negotiation.get_display_msg(),
-                                                               mode=self.game_mode)
-                                self.waiting_input = True
-                        else:
-                            robot_neg_choice = self.negotiation.choose_first_avail()
-                            self.robotui.display_on_screen(["Then let's negotiate. I say that...",
-                                                            self.negotiation.arg_description[robot_neg_choice]],
-                                                           mode=self.game_mode)
-                            self.negotiation.mark_as_used(robot_neg_choice)
-                            # Coin toss
-                            if robot_neg_choice == 3:
-                                self.coin_toss(init=True)
-            else:
-                self.next_step = self.robot_choice
-
-            if (self.game_mode == MODE_VS and not self.waiting_input) or \
-                    (self.game_mode == MODE_COOP and self.neg_stage == NEG_STAGE_AGREE) or \
-                    (AUTO_MODE and one_way) or backtrack:
-
-                # Update position
-                self.robot_map = background.move_position(self.robot_map, self.robot_pos, self.next_step,
-                                                          self.prev_r_pos, backtrack)
-                self.robot_pos = self.next_step
-                self.player_choice = PLAYER_NONE
-
-                # If it is a dead end, count it
-                if sum(self.maze.mmap[self.next_step[0]][self.next_step[1]].walls) > 2:
-                    if self.last_decision == TURN_ROBOT:
-                        self.deadend_count[0] += 1
-                    else:
-                        self.deadend_count[1] += 1
-
-                if self.next_step == [MAZE_SIZE - 1, MAZE_SIZE - 1]:
-                    self.solved = True
-                    self.robot_react()
-                else:
-                    self.robot_react(one_way, backtrack)
-
-                background.write_log(current_mov=self.next_step, game_mode=self.game_mode, turn_count=self.turn_count,
-                                     player=self.current_turn, one_way=one_way, backtracking=backtrack,
-                                     emotion=self.player_feel)
-                self.turn_count += 1
-                self.emotion_count += 1
-                self.neg_stage = NEG_STAGE_NONE
-                self.negotiation.reset()
-        elif self.waiting_toss:
-            self.coin_toss()
-        elif not self.waiting_input and self.solved:
-            self.clean_screen()
-            self.display_on_screen(["CONGRATULATIONS!!", "WE FOUND THE EXIT!!", "", "Press Q to Quit."])
-            self.game_mode = MODE_FINISH
-            self.waiting_input = True
-
     def coin_toss(self, init=False):
         if init:
             self.waiting_toss = True
             self.toss_time = time.time()
-            self.systemui.display_on_screen(["Tossing coin"])
+            self.message_systemui = ["Tossing coin"]
             self.toss_counter += 1
             self.toss_aux = 0
 
         if self.neg_stage != NEG_STAGE_AGREE and self.toss_aux > 3:
             # Clean screen and show the winner
-            self.clean_screen()
+            self.clean_message_ui()
             if randint(0, 1) == 1:
-                self.robotui.display_on_screen(["My turn!"])
+                self.message_robotui = ["My turn!"]
                 self.next_step = self.robot_choice
-                self.robot.make_action(R_NEG_AGREE)
+                self.robot_action = R_NEG_AGREE
                 self.decisions_taken[0] += 1
                 self.last_decision = TURN_ROBOT
             else:
-                self.humanui.display_on_screen(["Your turn!"])
+                self.message_humanui = ["Your turn!"]
                 self.next_step = self.player_choice
-                self.robot.make_action(R_NEG_LOSE)
+                self.robot_action = R_NEG_LOSE
                 self.decisions_taken[1] += 1
                 self.last_decision = TURN_PLAYER
 
@@ -567,42 +607,19 @@ class MainGame(Widget):
         elif self.neg_stage != NEG_STAGE_AGREE and \
                 time.time() - self.toss_time > 2 and self.current_toss != TURN_PLAYER:
             # one second flickering between screens
-            self.robotui.display_on_screen([""])
-            self.humanui.display_on_screen(["Your turn!"])
+            self.message_robotui = []
+            self.message_humanui = ["Your turn!"]
             self.toss_time = time.time()
             self.toss_aux += 1
-            self.robot.make_action(R_NEG_COIN, TURN_PLAYER)
+            self.robot_action = R_NEG_COIN
             self.current_toss = TURN_PLAYER
         elif self.neg_stage != NEG_STAGE_AGREE and \
                 time.time() - self.toss_time > 1 and self.current_toss != TURN_ROBOT:
             # one second flickering between screens
-            self.robotui.display_on_screen(["My turn!"])
-            self.humanui.display_on_screen([""])
-            self.robot.make_action(R_NEG_COIN, TURN_ROBOT)
+            self.message_robotui = ["My turn!"]
+            self.message_humanui = []
+            self.robot_action = R_NEG_COIN
             self.current_toss = TURN_ROBOT
-
-    def robot_react(self, one_way=False, backtrack=False):
-        walls = self.maze.mmap[self.robot_pos[0]][self.robot_pos[1]].walls
-
-        if self.turn_count == 0:
-            self.robot.make_action(R_SIT_START)
-        elif self.waiting_input:
-            self.humanui.display_on_screen(["Your turn!!"], mode=self.game_mode)
-            self.robot.make_action(R_SIT_WAITING)
-        elif self.solved:
-            self.change_maze_color()
-            self.robot.make_action(R_SIT_WIN)
-        elif sum(walls) == 3 and self.robot_pos != [0, 0]:
-            self.robotui.display_on_screen(["Owwwwwww..."], mode=self.game_mode)
-            self.robot.make_action(R_SIT_DEAD_END)
-        elif one_way and AUTO_MODE:
-            self.roboui.display_on_screen(["There is only one way!"], mode=self.game_mode)
-            self.robot.make_action(R_SIT_MOVING)
-        elif backtrack:
-            self.robotui.display_on_screen(["Backtracking..."], mode=self.game_mode)
-            self.robot.make_action(R_SIT_BACKTRACK)
-        elif not self.waiting_input and self.current_turn == TURN_PLAYER:
-            self.robotui.display_on_screen(["Deciding..."], mode=self.game_mode)
 
 
 class MainApp(App):

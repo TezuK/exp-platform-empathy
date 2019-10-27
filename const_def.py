@@ -5,10 +5,13 @@ ROBOT_IP = '192.168.1.126'
 MAZE_SIZE = 7               # in squares
 START_SELECT = "ROBOT"      # ROBOT / HUMAN
 FIXED_MAP = 1               # Use the predetermined maps. 0 => Random, 1 or 2 for defined in maze_def.py
-DEBUG_MODE = False          # If True doesn't use the robot
+DEBUG_MODE = True          # If True doesn't use the robot
+DEBUG_TIME = 0.75           # Sleep time on debug mode
 SHOW_ALL = False            # If True, show the whole map
 COIN_PERCENTAGE = 50        # To use the coin when no option is available. 0> No use, 100> Always use
 PRE_NEG_CHOICES = 2
+COUNT_SAME_DEC = True       # If True, increments the decision counter for the one that suggested it first
+                            # in negotiation mode even if they agree on the way
 AUTO_MODE = False           # Autopilot mode that will move automatically if there is no other choice
 SHOW_EXIT = True            # If True, it will show a sign on the exit block
 EMOTION_MANDATORY = True    # If True, emotion input is mandatory and user can't do anything until it is selected
@@ -16,7 +19,7 @@ EMOTION_TURNS = 10          # Number of turn spacing that the human will be prom
                             # this turn count refers to the total turn count, including the robot
 R_SAME_CNT = 3              # Number of same actions it turns to auto mode
 MAX_DISPLAY_LINES = 10
-LANGUAGE = 'ES'		    # Language to use: ES or EN
+LANGUAGE = 'EN'		    # Language to use: ES or EN
 
 
 # ----------------------------------------
@@ -32,6 +35,11 @@ TIME_TURN = 1
 TIME_STRAIGHT = 0.5
 TILT_SPEED = 50
 PAN_SPEED = 40
+
+# Main Program States
+STATE_LOGIC = 0
+STATE_UI = 1
+STATE_ROBOT = 2
 
 # Menu Selection
 MENU_INITIAL = "0"
@@ -113,7 +121,7 @@ TURN_AUTO = "AUTO"
 R_SIT_START = "0"
 R_SIT_DEAD_END = "1a"
 R_SIT_WIN = "1b"
-R_SIT_MOVING = "1c"
+R_SIT_AUTO = "1c"
 R_SIT_BACKTRACK = "1d"
 R_SIT_WAITING = "1e"
 R_SIT_DECIDE = "1f"

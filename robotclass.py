@@ -90,6 +90,7 @@ class Robot:
         if situation == R_SIT_START:
             if DEBUG_MODE:
                 print("Lets Start!!!")
+                time.sleep(DEBUG_TIME)
             else:
                 self.robobo.setEmotionTo(Emotions.LAUGHING)
                 self.robobo.playSound(Sounds.APPROVE)
@@ -98,6 +99,7 @@ class Robot:
         elif situation == R_SIT_DEAD_END:
             if DEBUG_MODE:
                 print("Robobo is sad. Dead End.")
+                time.sleep(DEBUG_TIME)
             else:
                 self.robobo.setEmotionTo(Emotions.AFRAID)
                 self.robobo.playSound(Sounds.DISAPPROVE)
@@ -108,17 +110,20 @@ class Robot:
         elif situation == R_SIT_WIN:
             if DEBUG_MODE:
                 print("WIN. HAPPY.")
+                time.sleep(DEBUG_TIME)
             else:
                 self.robobo.setEmotionTo(Emotions.LAUGHING)
                 self.robobo.setLedColorTo(led=LED.All, color=Color.BLUE)
                 self.robobo.playSound(sound=Sounds.LAUGH)
                 self.do_movement(R_MOVE_CIRCLE)
-        elif situation == R_SIT_MOVING:
+        elif situation == R_SIT_AUTO:
             if DEBUG_MODE:
                 if self.same_sit_cnt < R_SAME_CNT:
                     print("AUTO MOVING~~")
+                    time.sleep(DEBUG_TIME)
                 elif self.same_sit_cnt % R_SAME_CNT == 0:
                     print("Brrooom")
+                    time.sleep(DEBUG_TIME)
             else:
                 self.robobo.setEmotionTo(Emotions.NORMAL)
                 self.set_upper_leds(color=Color.GREEN)
@@ -134,7 +139,7 @@ class Robot:
         elif situation == R_SIT_BACKTRACK:
             if DEBUG_MODE:
                 print("Returning...")
-                time.sleep(0.75)
+                time.sleep(DEBUG_TIME)
             else:
                 self.robobo.setEmotionTo(Emotions.TIRED)
                 self.set_upper_leds(color=Color.YELLOW)
@@ -143,11 +148,12 @@ class Robot:
                     self.robobo.playSound(Sounds.MUMBLE)
                     self.robobo.sayText(robotext.backtrack[self.counters[C_BACKTRACK] % len(robotext.backtrack)])
                 else:
-                    time.sleep(0.75)
+                    time.sleep(DEBUG_TIME)
                 self.counters[C_BACKTRACK] += 1
         elif situation == R_SIT_WAITING:
             if DEBUG_MODE:
                 print("Waiting for direction input...")
+                time.sleep(DEBUG_TIME)
             else:
                 self.robobo.sayText(robotext.waiting[self.counters[C_WAITING] % len(robotext.waiting)], wait=False)
                 self.set_upper_leds(color=Color.CYAN)
@@ -156,7 +162,7 @@ class Robot:
         elif situation == R_SIT_DECIDE:
             if DEBUG_MODE:
                 print("Deciding...")
-                time.sleep(1)
+                time.sleep(DEBUG_TIME)
             else:
                 self.robobo.sayText(robotext.robot_turn[self.counters[C_TURN] % len(robotext.robot_turn)], wait=False)
                 self.robobo.movePanTo(degrees=-10, speed=PAN_SPEED)
@@ -168,6 +174,7 @@ class Robot:
         elif situation == R_NEG_WAITING:
             if DEBUG_MODE:
                 print("Waiting for direction input...")
+                time.sleep(DEBUG_TIME)
             else:
                 self.base_moves(move, mode, one_way, neg_stage)
 
@@ -178,6 +185,7 @@ class Robot:
         elif situation == R_NEG_RND_1:
             if DEBUG_MODE:
                 print("Negotiation round 1...")
+                time.sleep(DEBUG_TIME)
             else:
                 self.robobo.playSound(Sounds.THINKING)
                 self.set_upper_leds(color=Color.CYAN)
@@ -185,6 +193,7 @@ class Robot:
         elif situation == R_NEG_AGREE:
             if DEBUG_MODE:
                 print("Happy there is an agreement!")
+                time.sleep(DEBUG_TIME)
             else:
                 self.robobo.setEmotionTo(Emotions.HAPPY)
                 self.robobo.sayText(robotext.agreement[self.counters[C_AGREEMENT] % len(robotext.agreement)])
@@ -192,6 +201,7 @@ class Robot:
         elif situation == R_NEG_YIELD:
             if DEBUG_MODE:
                 print("It's ok.")
+                time.sleep(DEBUG_TIME)
             else:
                 self.robobo.sayText(robotext.negotiation_robot_yield[
                                         self.counters[C_NEG_R_YIELD] % len(robotext.negotiation_robot_yield)])
@@ -213,6 +223,7 @@ class Robot:
         elif situation == R_NEG_LOSE:
             if DEBUG_MODE:
                 print("Ow...Its your decision")
+                time.sleep(DEBUG_TIME)
             else:
                 self.robobo.setEmotionTo(Emotions.SAD)
                 self.robobo.playSound(Sounds.OUCH)
@@ -220,6 +231,7 @@ class Robot:
         elif situation == R_NEG_WIN:
             if DEBUG_MODE:
                 print("Yay! Thanks")
+                time.sleep(DEBUG_TIME)
             else:
                 self.robobo.setEmotionTo(Emotions.LAUGHING)
                 self.robobo.sayText(robotext.thanks)
