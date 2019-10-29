@@ -2,14 +2,15 @@ from const_def import *
 import mazeclass
 from maze_def import MazeDef
 from datetime import datetime
+from random import randint
 
 
 def check_if_visible(pos_x, pos_y, robot_map):
     if robot_map[pos_x][pos_y] != BLOCK_UNKNOWN or \
-            ((pos_x - 1 >= 0) and (robot_map[pos_x - 1][pos_y] != BLOCK_UNKNOWN)) or \
-            ((pos_x + 1 < MAZE_SIZE) and (robot_map[pos_x + 1][pos_y] != BLOCK_UNKNOWN)) or \
-            ((pos_y - 1 >= 0) and (robot_map[pos_x][pos_y - 1] != BLOCK_UNKNOWN)) or \
-            ((pos_y + 1 < MAZE_SIZE) and (robot_map[pos_x][pos_y + 1] != BLOCK_UNKNOWN)):
+            (SHOW_ADJACENT and (((pos_x - 1 >= 0) and (robot_map[pos_x - 1][pos_y] != BLOCK_UNKNOWN)) or
+                                ((pos_x + 1 < MAZE_SIZE) and (robot_map[pos_x + 1][pos_y] != BLOCK_UNKNOWN)) or
+                                ((pos_y - 1 >= 0) and (robot_map[pos_x][pos_y - 1] != BLOCK_UNKNOWN)) or
+                                ((pos_y + 1 < MAZE_SIZE) and (robot_map[pos_x][pos_y + 1] != BLOCK_UNKNOWN)))):
         return True
 
     return False
@@ -34,6 +35,7 @@ def maze_generation(maze_size, maze_type):
 
 def maze_solving(maze, robot_map, current_pos):
     walls = maze.mmap[current_pos[0]][current_pos[1]].walls
+    available = []
 
     # Right hand rule (adapted to perspective)
     # Doing it without "if chains" because of possible array position violations [-1]
@@ -59,76 +61,84 @@ def maze_solving(maze, robot_map, current_pos):
         if robot_map[current_pos[0]][current_pos[1] + 1] != BLOCK_DISCARD \
                 and (robot_map[current_pos[0]][current_pos[1] + 1] != BLOCK_PASS or backtrack) \
                 and (robot_map[current_pos[0]][current_pos[1] + 1] != BLOCK_CONFLICT or backtrack):
-            return [[current_pos[0], current_pos[1] + 1], backtrack, one_way, special]
+            available.append([current_pos[0], current_pos[1] + 1])
     # If the right path is open & is not the end, go right
     if not walls[WALL_RIGHT] and current_pos[0] != MAZE_SIZE - 1:
         # Only if it is not discarded
         if robot_map[current_pos[0] + 1][current_pos[1]] != BLOCK_DISCARD \
                 and (robot_map[current_pos[0] + 1][current_pos[1]] != BLOCK_PASS or backtrack) \
                 and (robot_map[current_pos[0] + 1][current_pos[1]] != BLOCK_CONFLICT or backtrack):
-            return [[current_pos[0] + 1, current_pos[1]], backtrack, one_way, special]
+            available.append([current_pos[0] + 1, current_pos[1]])
     # If the path up is open & is not the beginning, go up
     if not walls[WALL_TOP] and current_pos[1] != 0:
         # Only if it is not discarded
         if robot_map[current_pos[0]][current_pos[1] - 1] != BLOCK_DISCARD \
                 and (robot_map[current_pos[0]][current_pos[1] - 1] != BLOCK_PASS or backtrack) \
                 and (robot_map[current_pos[0]][current_pos[1] - 1] != BLOCK_CONFLICT or backtrack):
-            return [[current_pos[0], current_pos[1] - 1], backtrack, one_way, special]
+            available.append([current_pos[0], current_pos[1] - 1])
     # If the right path is open & is not the end, go right
     if not walls[WALL_LEFT] and current_pos[0] != 0:
         # Only if it is not discarded
         if robot_map[current_pos[0] - 1][current_pos[1]] != BLOCK_DISCARD \
                 and (robot_map[current_pos[0] - 1][current_pos[1]] != BLOCK_PASS or backtrack) \
                 and (robot_map[current_pos[0] - 1][current_pos[1]] != BLOCK_CONFLICT or backtrack):
-            return [[current_pos[0] - 1, current_pos[1]], backtrack, one_way, special]
+            available.append([current_pos[0] - 1, current_pos[1]])
 
     # SPECIAL LOGIC FOR USER MISGIVINGS, CONVERTING PASSED BLOCK TO CONFLICT ONES
-    special = True
-    # If the path down is open & is not the end, go down
-    if not walls[WALL_BOTTOM] and current_pos[1] != MAZE_SIZE - 1:
-        # Only if it is not discarded
-        if robot_map[current_pos[0]][current_pos[1] + 1] == BLOCK_PASS:
-            return [[current_pos[0], current_pos[1] + 1], backtrack, one_way, special]
-    # If the right path is open & is not the end, go right
-    if not walls[WALL_RIGHT] and current_pos[0] != MAZE_SIZE - 1:
-        # Only if it is not discarded
-        if robot_map[current_pos[0] + 1][current_pos[1]] == BLOCK_PASS:
-            return [[current_pos[0] + 1, current_pos[1]], backtrack, one_way, special]
-    # If the path up is open & is not the beginning, go up
-    if not walls[WALL_TOP] and current_pos[1] != 0:
-        # Only if it is not discarded
-        if robot_map[current_pos[0]][current_pos[1] - 1] == BLOCK_PASS:
-            return [[current_pos[0], current_pos[1] - 1], backtrack, one_way, special]
+    if len(available) == 0:
+        special = True
+        # If the path down is open & is not the end, go down
+        if not walls[WALL_BOTTOM] and current_pos[1] != MAZE_SIZE - 1:
+            # Only if it is not discarded
+            if robot_map[current_pos[0]][current_pos[1] + 1] == BLOCK_PASS:
+                available.append([current_pos[0], current_pos[1] + 1])
         # If the right path is open & is not the end, go right
-    if not walls[WALL_LEFT] and current_pos[0] != 0:
-        # Only if it is not discarded
-        if robot_map[current_pos[0] - 1][current_pos[1]] == BLOCK_PASS:
-            return [[current_pos[0] - 1, current_pos[1]], backtrack, one_way, special]
-
-    # SPECIAL LOGIC FOR USER EXTRA MISGIVINGS, CONVERTING PASSED CONFLICT TO CURRENT
-    special = True
-    # If the path down is open & is not the end, go down
-    if not walls[WALL_BOTTOM] and current_pos[1] != MAZE_SIZE - 1:
-        # Only if it is not discarded
-        if robot_map[current_pos[0]][current_pos[1] + 1] == BLOCK_CONFLICT:
-            return [[current_pos[0], current_pos[1] + 1], backtrack, one_way, special]
-    # If the right path is open & is not the end, go right
-    if not walls[WALL_RIGHT] and current_pos[0] != MAZE_SIZE - 1:
-        # Only if it is not discarded
-        if robot_map[current_pos[0] + 1][current_pos[1]] == BLOCK_CONFLICT:
-            return [[current_pos[0] + 1, current_pos[1]], backtrack, one_way, special]
-    # If the path up is open & is not the beginning, go up
-    if not walls[WALL_TOP] and current_pos[1] != 0:
-        # Only if it is not discarded
-        if robot_map[current_pos[0]][current_pos[1] - 1] == BLOCK_CONFLICT:
-            return [[current_pos[0], current_pos[1] - 1], backtrack, one_way, special]
+        if not walls[WALL_RIGHT] and current_pos[0] != MAZE_SIZE - 1:
+            # Only if it is not discarded
+            if robot_map[current_pos[0] + 1][current_pos[1]] == BLOCK_PASS:
+                available.append([current_pos[0] + 1, current_pos[1]])
+        # If the path up is open & is not the beginning, go up
+        if not walls[WALL_TOP] and current_pos[1] != 0:
+            # Only if it is not discarded
+            if robot_map[current_pos[0]][current_pos[1] - 1] == BLOCK_PASS:
+                available.append([current_pos[0], current_pos[1] - 1])
         # If the right path is open & is not the end, go right
-    if not walls[WALL_LEFT] and current_pos[0] != 0:
-        # Only if it is not discarded
-        if robot_map[current_pos[0] - 1][current_pos[1]] == BLOCK_CONFLICT:
-            return [[current_pos[0] - 1, current_pos[1]], backtrack, one_way, special]
+        if not walls[WALL_LEFT] and current_pos[0] != 0:
+            # Only if it is not discarded
+            if robot_map[current_pos[0] - 1][current_pos[1]] == BLOCK_PASS:
+                available.append([current_pos[0] - 1, current_pos[1]])
 
-    return [[0, 0], False, False, True]
+    if len(available) == 0:
+        # SPECIAL LOGIC FOR USER EXTRA MISGIVINGS, CONVERTING PASSED CONFLICT TO CURRENT
+        special = True
+        # If the path down is open & is not the end, go down
+        if not walls[WALL_BOTTOM] and current_pos[1] != MAZE_SIZE - 1:
+            # Only if it is not discarded
+            if robot_map[current_pos[0]][current_pos[1] + 1] == BLOCK_CONFLICT:
+                available.append([current_pos[0], current_pos[1] + 1])
+        # If the right path is open & is not the end, go right
+        if not walls[WALL_RIGHT] and current_pos[0] != MAZE_SIZE - 1:
+            # Only if it is not discarded
+            if robot_map[current_pos[0] + 1][current_pos[1]] == BLOCK_CONFLICT:
+                available.append([current_pos[0] + 1, current_pos[1]])
+        # If the path up is open & is not the beginning, go up
+        if not walls[WALL_TOP] and current_pos[1] != 0:
+            # Only if it is not discarded
+            if robot_map[current_pos[0]][current_pos[1] - 1] == BLOCK_CONFLICT:
+                available.append([current_pos[0], current_pos[1] - 1])
+            # If the right path is open & is not the end, go right
+        if not walls[WALL_LEFT] and current_pos[0] != 0:
+            # Only if it is not discarded
+            if robot_map[current_pos[0] - 1][current_pos[1]] == BLOCK_CONFLICT:
+                available.append([current_pos[0] - 1, current_pos[1]])
+
+    if len(available) != 0:
+        if RANDOM_SELECT:
+            return [available[randint(0, len(available)-1)], backtrack, one_way, special]
+        else:
+            return [available[0], backtrack, one_way, special]
+    else:
+        return [[0, 0], False, False, True]
 
 
 def get_number_walls(robot_map, current_pos, walls, wall_type):

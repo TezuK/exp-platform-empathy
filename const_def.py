@@ -9,12 +9,14 @@ FIXED_MAP = 1               # Use the predetermined maps. 0 => Random, 1 or 2 fo
 DEBUG_MODE = True          # If True doesn't use the robot
 DEBUG_TIME = 0.75           # Sleep time on debug mode
 SHOW_ALL = False            # If True, show the whole map
+SHOW_ADJACENT = False       # If True, show the adjacent blocks
+SHOW_EXIT = True            # If True, it will show a sign on the exit block
 COIN_PERCENTAGE = 50        # To use the coin when no option is available. 0> No use, 100> Always use
 PRE_NEG_CHOICES = 2
 COUNT_SAME_DEC = True       # If True, increments the decision counter for the one that suggested it first
                             # in negotiation mode even if they agree on the way
 AUTO_MODE = False           # Autopilot mode that will move automatically if there is no other choice
-SHOW_EXIT = True            # If True, it will show a sign on the exit block
+RANDOM_SELECT = True        # If True, robot will choose random from available choices. If False, right-hand rule
 EMOTION_MANDATORY = True    # If True, emotion input is mandatory and user can't do anything until it is selected
 EMOTION_TURNS = 10          # Number of turn spacing that the human will be prompted to give emotion feedback
                             # this turn count refers to the total turn count, including the robot
@@ -136,8 +138,6 @@ R_NEG_WIN = "Robot Wins"
 R_NEG_RND_1 = "2d"
 R_NEG_RND_2 = "3d"
 R_NEG_RND_3 = "4e"
-R_AGREE = "5"
-R_SAME_CHOICE = "6"
 
 # Player situations
 P_NEG_CH1 = 0
