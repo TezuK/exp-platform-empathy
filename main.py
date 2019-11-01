@@ -339,13 +339,15 @@ class MainGame(Widget):
                 self.message_robotui = ["Owwwwwww..."]
         elif not self.waiting_input and not self.waiting_toss and not self.solved:
             self.clean_message_ui()
+            special = False
             if self.emotion_count >= EMOTION_TURNS:
                 self.message_systemui = ["Please select emotion"]
 
             # Get robot's next possible choice
-            [self.robot_choice, self.backtrack, self.one_way, special] = background.maze_solving(self.maze,
-                                                                                                 self.robot_map,
-                                                                                                 self.robot_pos)
+            if self.game_mode == MODE_VS or self.neg_stage == NEG_STAGE_NONE:
+                [self.robot_choice, self.backtrack, self.one_way, special] = background.maze_solving(self.maze,
+                                                                                                     self.robot_map,
+                                                                                                     self.robot_pos)
             if special:
                 self.robot_map[self.robot_pos[0]][self.robot_pos[1]] = BLOCK_CONFLICT
 
@@ -525,14 +527,15 @@ class MainGame(Widget):
         self.player.move(self.robot_pos)
         self.change_active_emotion()
 
-        # paint the maze
-        for j in range(MAZE_SIZE):
-            for i in range(MAZE_SIZE):
-                if (SHOW_ALL or background.check_if_visible(j, MAZE_SIZE - 1 - i, self.robot_map)) \
-                        and not self.painted_map[j][i]:
-                    walls_value = self.maze.mmap[j][MAZE_SIZE - 1 - i].walls
-                    self.show_walls(maze_pos=[j, i], walls_value=walls_value, win=self.solved)
-                    self.painted_map[j][i] = True
+        # paint the maze when the turn is made
+        if not self.take_step:
+            for j in range(MAZE_SIZE):
+                for i in range(MAZE_SIZE):
+                    if (SHOW_ALL or background.check_if_visible(j, MAZE_SIZE - 1 - i, self.robot_map)) \
+                            and not self.painted_map[j][i]:
+                        walls_value = self.maze.mmap[j][MAZE_SIZE - 1 - i].walls
+                        self.show_walls(maze_pos=[j, i], walls_value=walls_value, win=self.solved)
+                        self.painted_map[j][i] = True
 
         self.display_on_screen(message=self.message_generalui)
         self.robotui.display_on_screen(message=self.message_robotui)
