@@ -610,14 +610,14 @@ class MainGame(Widget):
                 self.message_robotui = ["My turn!",
                                         "Let's go " + background.pos_to_input(self.robot_pos, self.robot_choice)]
                 self.next_step = self.robot_choice
-                self.robot_action = R_NEG_AGREE
+                self.robot_action = R_NEG_COIN_WIN
                 self.decisions_taken[0] += 1
                 self.last_decision = TURN_ROBOT
             else:
                 self.message_humanui = ["Your turn!",
                                         "Let's go " + background.pos_to_input(self.robot_pos, self.player_choice)]
                 self.next_step = self.player_choice
-                self.robot_action = R_NEG_LOSE
+                self.robot_action = R_NEG_COIN_LOSE
                 self.decisions_taken[1] += 1
                 self.last_decision = TURN_PLAYER
 

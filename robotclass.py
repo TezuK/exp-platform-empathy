@@ -206,6 +206,7 @@ class Robot:
                 self.set_upper_leds(color=Color.CYAN)
                 self.robobo.moveTiltTo(degrees=100, speed=TILT_SPEED)
                 if neg_option != -1:
+                    self.robobo.sayText(robotext.negotiate[randint(0, len(robotext.negotiate) - 1)])
                     self.robobo.sayText(robotext.deciding[neg_option][3:])
         elif situation == R_NEG_AGREE:
             if DEBUG_MODE:
@@ -240,14 +241,24 @@ class Robot:
                     # print("HUMAN SIGN")
                     self.robobo.playNote(note=64, duration=0.5, wait=False)
                     self.robobo.movePanTo(degrees=5, speed=PAN_SPEED * 2, wait=False)
-        elif situation == R_NEG_LOSE:
+        elif situation == R_NEG_COIN_LOSE:
             if DEBUG_MODE:
                 print("Ow...Its your decision")
                 time.sleep(DEBUG_TIME)
             else:
                 self.robobo.setEmotionTo(Emotions.SAD)
                 self.robobo.playSound(Sounds.OUCH)
+                self.robobo.sayText(robotext.coin_lose[randint(0, len(robotext.coin_loss) - 1)])
                 self.robobo.moveTiltTo(degrees=100, speed=round(TILT_SPEED / 2))
+        elif situation == R_NEG_COIN_WIN:
+            if DEBUG_MODE:
+                print("I won!")
+                time.sleep(DEBUG_TIME)
+            else:
+                self.robobo.setEmotionTo(Emotions.HAPPY)
+                self.robobo.sayText(robotext.coin_win[randint(0, len(robotext.coin_win) - 1)])
+                self.robobo.playSound(Sounds.LIKES)
+                self.set_upper_leds(Color.GREEN)
         elif situation == R_NEG_WIN:
             if DEBUG_MODE:
                 print("Yay! Thanks")
