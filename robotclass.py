@@ -25,6 +25,7 @@ class Robot:
         self.same_sit_cnt = 1
         self.counters = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.prev_sit = None
+        self.cues_counter = 0
         if not DEBUG_MODE:
             self.robobo.connect()
 
@@ -164,6 +165,7 @@ class Robot:
         elif situation == R_SIT_DECIDE:
             if DEBUG_MODE:
                 print("Deciding...")
+                self.decision_moves(move, mode, one_way)
                 time.sleep(DEBUG_TIME)
             else:
                 self.robobo.setEmotionTo(Emotions.NORMAL)
@@ -172,7 +174,7 @@ class Robot:
                 self.robobo.movePanTo(degrees=10, speed=PAN_SPEED)
                 self.robobo.movePanTo(degrees=0, speed=PAN_SPEED)
                 self.set_upper_leds(color=Color.CYAN)
-                self.base_moves(move, mode, one_way)
+                self.decision_moves(move, mode, one_way)
                 self.counters[C_TURN] += 1
         elif situation == R_SIT_FAIL:
             if DEBUG_MODE:
@@ -186,9 +188,10 @@ class Robot:
         elif situation == R_NEG_WAITING:
             if DEBUG_MODE:
                 print("Waiting for direction input...")
+                self.decision_moves(move, mode, one_way, neg_stage)
                 time.sleep(DEBUG_TIME)
             else:
-                self.base_moves(move, mode, one_way, neg_stage)
+                self.decision_moves(move, mode, one_way, neg_stage)
                 self.robobo.setEmotionTo(Emotions.NORMAL)
                 self.robobo.sayText(robotext.waiting[self.counters[C_WAITING] % len(robotext.waiting)])
                 self.set_upper_leds(color=Color.CYAN)
@@ -208,6 +211,19 @@ class Robot:
                 if neg_option != -1:
                     self.robobo.sayText(robotext.negotiate[randint(0, len(robotext.negotiate) - 1)])
                     self.robobo.sayText(robotext.deciding[neg_option][3:])
+        elif situation == R_NEG_RND_2:
+            if DEBUG_MODE:
+                print("Negotiation round 2...")
+                if neg_option != -1:
+                    print(robotext.deciding[neg_option][3:])
+                self.decision_moves(move, mode, one_way, neg_stage)
+                time.sleep(DEBUG_TIME)
+            else:
+                self.robobo.setEmotionTo(Emotions.ANGRY)
+                self.set_upper_leds(color=Color.RED)
+                if neg_option != -1:
+                    self.robobo.sayText(robotext.deciding[neg_option][3:], False)
+                self.decision_moves(move, mode, one_way, neg_stage)
         elif situation == R_NEG_AGREE:
             if DEBUG_MODE:
                 print("Happy there is an agreement!")
@@ -267,57 +283,102 @@ class Robot:
                 self.robobo.setEmotionTo(Emotions.LAUGHING)
                 self.robobo.sayText(robotext.thanks)
 
-    def base_moves(self, move, mode=MODE_VS, one_way=False, neg_stage=NEG_STAGE_NONE):
+    def decision_moves(self, move, mode=MODE_VS, one_way=False, neg_stage=NEG_STAGE_NONE):
+        decided_cue = None
 
         if one_way:
-            self.robobo.sayText(robotext.one_way[self.counters[C_WAITING] % len(robotext.one_way)])
-            # print(robotext.one_way[self.counters[C_WAITING] % len(robotext.one_way)])
-        elif (mode == MODE_VS and self.counters[C_MOVEMENT] % 3 == 0) \
-                or (mode == MODE_COOP and neg_stage == NEG_STAGE_START):
-            self.do_movement(move, lite=True)
-            # print("DO LITE MOVE")
-        elif (mode == MODE_VS and self.counters[C_MOVEMENT] % 3 == 1) \
-                or (mode == MODE_COOP and neg_stage == NEG_STAGE_2):
-            self.do_movement(move, lite=False)
-            # print("DO FULL MOVE")
+            if DEBUG_MODE:
+                print(robotext.one_way[self.counters[C_WAITING] % len(robotext.one_way)])
+            else:
+                self.robobo.sayText(robotext.one_way[self.counters[C_WAITING] % len(robotext.one_way)])
         else:
-            if move == R_MOVE_FWD:
-                self.robobo.sayText(robotext.down[self.counters[C_DOWN] % len(robotext.down)])
-                self.robobo.moveTiltTo(degrees=100, speed=TILT_SPEED)
-                self.robobo.moveTiltTo(degrees=85, speed=TILT_SPEED)
-                self.robobo.moveTiltTo(degrees=100, speed=TILT_SPEED)
-                self.robobo.moveTiltTo(degrees=80, speed=int(TILT_SPEED * 0.7))
-                time.sleep(0.1)
-                self.robobo.moveTiltTo(degrees=80, speed=int(TILT_SPEED * 0.5))
-                self.counters[C_DOWN] += 1
-            elif move == R_MOVE_LEFT:
-                # Note: Robobo is mirrored as it is looking to the human
-                self.robobo.sayText(robotext.right[self.counters[C_RIGHT] % len(robotext.right)])
-                self.robobo.movePanTo(degrees=-15, speed=PAN_SPEED * 4)
-                self.robobo.movePanTo(degrees=-5, speed=PAN_SPEED * 4)
-                self.robobo.movePanTo(degrees=-15, speed=PAN_SPEED * 4)
-                self.robobo.movePanTo(degrees=0, speed=PAN_SPEED * 4)
-                self.counters[C_LEFT] += 1
-            elif move == R_MOVE_RIGHT:
-                # Note: Robobo is mirrored as it is looking to the human
-                self.robobo.sayText(robotext.left[self.counters[C_LEFT] % len(robotext.left)])
-                self.robobo.movePanTo(degrees=15, speed=PAN_SPEED * 4)
-                self.robobo.movePanTo(degrees=5, speed=PAN_SPEED * 4)
-                self.robobo.movePanTo(degrees=15, speed=PAN_SPEED * 4)
-                self.robobo.movePanTo(degrees=0, speed=PAN_SPEED * 4)
-                self.counters[C_RIGHT] += 1
-            elif move == R_MOVE_BACK:
-                self.robobo.sayText(robotext.up[self.counters[C_UP] % len(robotext.up)])
-                self.robobo.moveTiltTo(degrees=70, speed=TILT_SPEED)
-                self.robobo.moveTiltTo(degrees=85, speed=TILT_SPEED)
-                self.robobo.moveTiltTo(degrees=70, speed=TILT_SPEED)
-                self.robobo.moveTiltTo(degrees=80, speed=int(TILT_SPEED * 0.7))
-                time.sleep(0.1)
-                self.robobo.moveTiltTo(degrees=80, speed=int(TILT_SPEED * 0.5))
-                self.counters[C_UP] += 1
+            if mode == MODE_VS:
+                if CUES_ORDER == "Sequential":
+                    decided_cue = self.cues_counter % TOTAL_CUES
+                elif CUES_ORDER == "Random":
+                    decided_cue = randint(0, TOTAL_CUES - 1)
+                elif CUES_ORDER == "TalkOnly":
+                    decided_cue = 1
+                else:
+                    decided_cue = VS_CUES[self.cues_counter % TOTAL_CUES]
+            else:
+                if neg_stage == NEG_STAGE_START:
+                    if CUES_ORDER == "Sequential":
+                        decided_cue = self.cues_counter % 2        # Only decide between lite and head movement
+                    elif CUES_ORDER == "Random":
+                        decided_cue = randint(0, TOTAL_CUES - 2)   # Full movement cue is reserved for 2nd stage
+                    elif CUES_ORDER == "TalkOnly":
+                        decided_cue = 1
+                    else:
+                        decided_cue = COOP_CUES[self.cues_counter % 2]
+                else:
+                    # Both Random and Sequential share the same cue for 2nd stage: Full movement
+                    decided_cue = 2
+                    if CUES_ORDER == "Custom":
+                        decided_cue = COOP_CUES[self.cues_counter % 2]
+            self.cues_counter += 1
+
+        if DEBUG_MODE:
+            print("MOV NEG STAGE: " + str(neg_stage))
+            print("DECIDED CUE: " + str(decided_cue) + ", MOVE: " + str(move))
+
+        # Lite Movement
+        if decided_cue == 0:
+            if DEBUG_MODE:
+                print("DO LITE MOVE")
+            else:
+                self.do_movement(move, lite=True)
+        # Head Movement
+        elif decided_cue == 1:
+            if DEBUG_MODE:
+                print("DO HEAD MOVE")
+            else:
+                self.head_movement(move)
+        # Full Movement
+        elif decided_cue == 2:
+            if DEBUG_MODE:
+                print("DO FULL MOVE")
+            else:
+                self.do_movement(move, lite=False)
 
         if not one_way:
             self.counters[C_MOVEMENT] += 1
+
+    def head_movement(self, move):
+        if move == R_MOVE_FWD:
+            self.robobo.sayText(robotext.down[self.counters[C_DOWN] % len(robotext.down)])
+            self.robobo.moveTiltTo(degrees=100, speed=TILT_SPEED)
+            self.robobo.moveTiltTo(degrees=85, speed=TILT_SPEED)
+            self.robobo.moveTiltTo(degrees=100, speed=TILT_SPEED)
+            self.robobo.moveTiltTo(degrees=80, speed=int(TILT_SPEED * 0.7))
+            time.sleep(0.1)
+            self.robobo.moveTiltTo(degrees=80, speed=int(TILT_SPEED * 0.5))
+            self.counters[C_DOWN] += 1
+        elif move == R_MOVE_LEFT:
+            # Note: Robobo is mirrored as it is looking to the human
+            self.robobo.sayText(robotext.right[self.counters[C_RIGHT] % len(robotext.right)])
+            self.robobo.movePanTo(degrees=-15, speed=PAN_SPEED * 4)
+            self.robobo.movePanTo(degrees=-5, speed=PAN_SPEED * 4)
+            self.robobo.movePanTo(degrees=-15, speed=PAN_SPEED * 4)
+            self.robobo.movePanTo(degrees=0, speed=PAN_SPEED * 4)
+            self.counters[C_LEFT] += 1
+        elif move == R_MOVE_RIGHT:
+            # Note: Robobo is mirrored as it is looking to the human
+            self.robobo.sayText(robotext.left[self.counters[C_LEFT] % len(robotext.left)])
+            self.robobo.movePanTo(degrees=15, speed=PAN_SPEED * 4)
+            self.robobo.movePanTo(degrees=5, speed=PAN_SPEED * 4)
+            self.robobo.movePanTo(degrees=15, speed=PAN_SPEED * 4)
+            self.robobo.movePanTo(degrees=0, speed=PAN_SPEED * 4)
+            self.counters[C_RIGHT] += 1
+        elif move == R_MOVE_BACK:
+            self.robobo.sayText(robotext.up[self.counters[C_UP] % len(robotext.up)])
+            self.robobo.moveTiltTo(degrees=70, speed=TILT_SPEED)
+            self.robobo.moveTiltTo(degrees=85, speed=TILT_SPEED)
+            self.robobo.moveTiltTo(degrees=70, speed=TILT_SPEED)
+            self.robobo.moveTiltTo(degrees=80, speed=int(TILT_SPEED * 0.7))
+            time.sleep(0.1)
+            self.robobo.moveTiltTo(degrees=80, speed=int(TILT_SPEED * 0.5))
+            self.counters[C_UP] += 1
 
     def reset_state(self):
         self.robobo.setLedColorTo(LED.All, color=Color.OFF)

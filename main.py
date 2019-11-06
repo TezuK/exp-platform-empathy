@@ -327,6 +327,7 @@ class MainGame(Widget):
             self.game_mode = MODE_FINISH
             self.waiting_input = True
         elif self.take_step:
+            self.prev_r_pos = self.robot_pos
             self.robot_pos = self.next_step
             self.take_step = False
 
@@ -457,7 +458,7 @@ class MainGame(Widget):
                             else:
                                 # do a robot cue with more emphasis if it is the 2nd step
                                 if self.neg_stage != NEG_STAGE_1:
-                                    self.robot_action = R_NEG_WAITING
+                                    self.robot_action = R_NEG_RND_2
                                 else:
                                     self.robot_action = R_NEG_RND_1
                                     self.robot_neg = robot_neg_choice
@@ -546,13 +547,16 @@ class MainGame(Widget):
     def game_robot(self):
         walls = self.maze.mmap[self.robot_pos[0]][self.robot_pos[1]].walls
 
-        if self.robot_action == R_SIT_DECIDE or self.robot_action == R_NEG_WAITING:
+        if self.robot_action == R_SIT_DECIDE or self.robot_action == R_NEG_WAITING or self.robot_action == R_NEG_RND_2:
             self.robot.make_action(situation=self.robot_action,
-                                   move=background.move_translate(self.robot_choice, self.robot_choice),
+                                   move=background.move_translate(self.prev_r_pos, self.robot_choice),
                                    mode=self.game_mode, one_way=self.one_way or self.backtrack,
                                    neg_stage=self.neg_stage)
-        elif self.robot_action == R_NEG_RND_1:
-            self.robot.make_action(situation=self.robot_action, neg_option=self.robot_neg)
+        elif self.robot_action == R_NEG_RND_1 or R_NEG_RND_2:
+            self.robot.make_action(situation=self.robot_action,
+                                   move=background.move_translate(self.prev_r_pos, self.robot_choice),
+                                   one_way=False,
+                                   neg_option=self.robot_neg)
         elif self.robot_action == R_NEG_COIN:
             self.robot.make_action(situation=self.robot_action, move=self.current_toss)
         else:

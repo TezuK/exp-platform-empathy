@@ -11,7 +11,7 @@ DEBUG_TIME = 0.75           # Sleep time on debug mode
 SHOW_ALL = False            # If True, show the whole map
 SHOW_ADJACENT = False       # If True, show the adjacent blocks
 SHOW_EXIT = True            # If True, it will show a sign on the exit block
-COIN_PERCENTAGE = 50        # To use the coin when no option is available. 0> No use, 100> Always use
+COIN_PERCENTAGE = 0        # To use the coin when no option is available. 0> No use, 100> Always use
 PRE_NEG_CHOICES = 2
 COUNT_SAME_DEC = True       # If True, increments the decision counter for the one that suggested it first
                             # in negotiation mode even if they agree on the way
@@ -20,6 +20,14 @@ RANDOM_SELECT = True        # If True, robot will choose random from available c
 EMOTION_MANDATORY = True    # If True, emotion input is mandatory and user can't do anything until it is selected
 EMOTION_TURNS = 10          # Number of turn spacing that the human will be prompted to give emotion feedback
                             # this turn count refers to the total turn count, including the robot
+CUES_ORDER = "Sequential"   # This marks the order of the cues in which the robot will express its movement decision
+                            # Random
+                            # Sequential => 0. Only wheel turns, 1.Head movements, 2. Wheel turns + going forward
+                            # TalkOnly => Robot will just say its decision and do head movements
+                            # Custom => This can be designed by the user filling the order in the CUES_CUSTOM variable
+VS_CUES = [0, 1, 2]         # Custom cues for VS mode
+COOP_CUES = [0, 2]          # Custom cues for negotiation mode (round 1 & round 2)
+TOTAL_CUES = 3              # Modify this if a new cue is created apart from the ones above
 R_SAME_CNT = 3              # Number of same actions it turns to auto mode
 MAX_DISPLAY_LINES = 10
 LANGUAGE = 'EN'		    # Language to use: ES or EN
