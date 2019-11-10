@@ -133,6 +133,10 @@ def maze_solving(maze, robot_map, current_pos):
                 available.append([current_pos[0] - 1, current_pos[1]])
 
     if len(available) != 0:
+        for i in available:
+            if i == [MAZE_SIZE - 1, MAZE_SIZE - 1]:
+                return [i, backtrack, one_way, special]
+
         if RANDOM_SELECT:
             return [available[randint(0, len(available)-1)], backtrack, one_way, special]
         else:
