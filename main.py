@@ -353,10 +353,8 @@ class MainGame(Widget):
             special = False
             if self.emotion_count >= EMOTION_TURNS:
                 self.message_systemui = ["Please select emotion"]
-                if not DEBUG_MODE:
-                    self.robot.robobo.sayText(choice(robotext.input_emotion))
                 self.waiting_emotion_input = True
-                self.last_emotion_utterance_time = time.time()
+                self.last_emotion_utterance_time = 0
 
             # Get robot's next possible choice
             if self.game_mode == MODE_VS or self.neg_stage == NEG_STAGE_NONE:
@@ -539,7 +537,7 @@ class MainGame(Widget):
             self.game_mode = MODE_FINISH
             self.waiting_input = True
         elif self.waiting_emotion_input:
-            if time.time() - self.last_emotion_utterance_time > 5:
+            if time.time() - self.last_emotion_utterance_time > 5 and not DEBUG_MODE:
                 self.robot.robobo.sayText(choice(robotext.input_emotion))
                 self.last_emotion_utterance_time = time.time()
 
