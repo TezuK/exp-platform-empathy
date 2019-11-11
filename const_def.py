@@ -6,7 +6,7 @@ MAZE_SIZE = 7               # in squares
 START_SELECT = "ROBOT"      # ROBOT / HUMAN
 TIME_LIMIT = 10             # Time limit (in minutes) for the challenge, if it meets then the test ends
 FIXED_MAP = 1               # Use the predetermined maps. 0 => Random, 1 or 2 for defined in maze_def.py
-DEBUG_MODE = True          # If True doesn't use the robot
+DEBUG_MODE = False          # If True doesn't use the robot
 DEBUG_TIME = 0.75           # Sleep time on debug mode
 SHOW_ALL = False            # If True, show the whole map
 SHOW_ADJACENT = False       # If True, show the adjacent blocks
