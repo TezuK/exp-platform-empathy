@@ -99,4 +99,4 @@ end_failure = ["Sorry...", "I'm afraid we ran out of time", "", "Press Q to Quit
 end_win = ["CONGRATULATIONS!!", "WE FOUND THE EXIT!!", "", "Press Q to Quit."]
 coin_win = ["I won! It is my decision"]
 coin_lose = ["I lost! Lets do your choice"]
-
+start = ["Vamos a empezar"]

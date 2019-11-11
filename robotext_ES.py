@@ -4,7 +4,7 @@ deciding = ["1. Yo he estado decidiendo hasta ahora, déjame continuar",
             "3. tus decisiones nos han llevado a callejones sin salida",
             "4. hagámoslo a la suerte",
             "5. de acuerdo, vamos por donde tú crees",
-            "6. por ahí no"]
+            "6. por ahí no, callejón sin salida"]
 
 # Lines to say if there is only one way
 one_way = ["solo veo un camino posible",
@@ -61,15 +61,15 @@ robot_choice_left = ["yo creo que debemos ir hacia la izquierda",
 
 thanks = "gracias"
 
-negotiate = ["negociemos", "no estoy de acuero",
-             "no creo que debamos ir por allí",
-             "me parece que no es buena idea"]
+negotiate = ["negociemos", "no estoy de acuerdo, hablémoslo",
+             "no creo que debamos ir por allí, negociemos",
+             "me parece que no es buena idea. Veamos"]
 
 negotiation_robot_disagree = ["sigue sin parecerme bien", "sigo sin estar de acuerdo"]
 
 negotiation_robot_yield = ["como prefieras",
                            "de acuerdo, lo haremos a tu manera",
-                           "está bien, acepto tu decisión",
+                           "está bien, acepto tu sugerencia",
                            "sigamos tu opción",
                            "sigamos tu consejo"]
 
@@ -105,4 +105,4 @@ end_failure = ["Sorry...", "I'm afraid we ran out of time", "", "Press Q to Quit
 end_win = ["CONGRATULATIONS!!", "WE FOUND THE EXIT!!", "", "Press Q to Quit."]
 coin_win = ["He ganado. Seguimos mi consejo", "La suerte es mía"]
 coin_lose = ["He perdido. Sigamos tu consejo", "La suerte es tuya"]
-
+start = ["Vamos a empezar"]

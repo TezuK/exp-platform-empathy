@@ -161,6 +161,8 @@ class MainGame(Widget):
         self.backtrack = False
         self.take_step = False
         self.time = time.time()
+        self.waiting_emotion_input = False  # to control time to request emotion input from user
+        self.last_emotion_utterance_time = 0
 
         # Decisions taken in negotiation from the [Robot,Human] & Dead End encounters due to their decisions
         self.decisions_taken = [0, 0]
@@ -239,9 +241,11 @@ class MainGame(Widget):
                 if keycode[1] == '1':
                     self.game_mode = MODE_VS
                     self.waiting_input = False
+                    self.robot_action = R_SIT_START
                 elif keycode[1] == '2':
                     self.game_mode = MODE_COOP
                     self.waiting_input = False
+                    self.robot_action = R_SIT_START
                 elif keycode[1] == '3':
                     self.robot.presentation()
 
@@ -270,6 +274,7 @@ class MainGame(Widget):
                 self.change_active_emotion()
                 background.write_log(emotion=self.player_feel)
                 self.emotion_count = 0
+                self.waiting_emotion_input = False
                 self.message_systemui= [""]
                 if DEBUG_MODE:
                     print(self.player_feel)
@@ -343,11 +348,15 @@ class MainGame(Widget):
                     self.deadend_count[1] += 1
                 self.robot_action = R_SIT_DEAD_END
                 self.message_robotui = ["Owwwwwww..."]
-        elif not self.waiting_input and not self.waiting_toss and not self.solved:
+        elif not self.waiting_input and not self.waiting_toss and not self.solved and not self.waiting_emotion_input:
             self.clean_message_ui()
             special = False
             if self.emotion_count >= EMOTION_TURNS:
                 self.message_systemui = ["Please select emotion"]
+                if not DEBUG_MODE:
+                    self.robot.robobo.sayText(choice(robotext.input_emotion))
+                self.waiting_emotion_input = True
+                self.last_emotion_utterance_time = time.time()
 
             # Get robot's next possible choice
             if self.game_mode == MODE_VS or self.neg_stage == NEG_STAGE_NONE:
@@ -477,8 +486,8 @@ class MainGame(Widget):
                                     self.robot_action = R_NEG_RND_2
                                 else:
                                     self.robot_action = R_NEG_RND_1
-                                    self.robot_neg = robot_neg_choice
-
+                                print("ROUND: " + str(self.neg_stage) + " >>>>>>>>" + str(robot_neg_choice))
+                                self.robot_neg = robot_neg_choice
                                 self.message_humanui = self.negotiation.get_display_msg()
                                 self.waiting_input = True
                         else:
@@ -529,6 +538,10 @@ class MainGame(Widget):
             self.robot_action = R_SIT_WIN
             self.game_mode = MODE_FINISH
             self.waiting_input = True
+        elif self.waiting_emotion_input:
+            if time.time() - self.last_emotion_utterance_time > 5:
+                self.robot.robobo.sayText(choice(robotext.input_emotion))
+                self.last_emotion_utterance_time = time.time()
 
     def game_ui(self):
         # show the exit if activated
@@ -567,8 +580,8 @@ class MainGame(Widget):
             self.robot.make_action(situation=self.robot_action,
                                    move=background.move_translate(self.prev_r_pos, self.robot_choice),
                                    mode=self.game_mode, one_way=self.one_way or self.backtrack,
-                                   neg_stage=self.neg_stage)
-        elif self.robot_action == R_NEG_RND_1 or R_NEG_RND_2:
+                                   neg_stage=self.neg_stage, neg_option=self.robot_neg)
+        elif self.robot_action == R_NEG_RND_1:
             self.robot.make_action(situation=self.robot_action,
                                    move=background.move_translate(self.prev_r_pos, self.robot_choice),
                                    one_way=False,
@@ -623,6 +636,7 @@ class MainGame(Widget):
             self.toss_aux = 0
             self.robot_action = R_NEG_COIN
             self.current_toss = None
+            self.robot.robobo.sayText(choice(robotext.toss_coin))
         elif self.neg_stage != NEG_STAGE_AGREE and self.toss_aux > 3:
             # Clean screen and show the winner
             self.clean_message_ui()

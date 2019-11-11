@@ -101,6 +101,7 @@ class Robot:
                 time.sleep(DEBUG_TIME)
             else:
                 self.robobo.setEmotionTo(Emotions.LAUGHING)
+                self.robobo.sayText(choice(robotext.start))
                 self.robobo.playSound(Sounds.APPROVE)
                 self.robobo.setLedColorTo(led=LED.All, color=Color.CYAN)
                 self.do_movement(R_MOVE_CIRCLE)
@@ -122,7 +123,7 @@ class Robot:
             else:
                 self.robobo.setEmotionTo(Emotions.LAUGHING)
                 self.robobo.setLedColorTo(led=LED.All, color=Color.BLUE)
-                self.robobo.sayText(robotext.finish)
+                self.robobo.sayText(choice(robotext.finish))
                 self.robobo.playSound(sound=Sounds.LAUGH)
                 self.do_movement(R_MOVE_CIRCLE)
                 self.robobo.sayText(choice(robotext.left))
@@ -226,13 +227,13 @@ class Robot:
                 print("Negotiation round 2...")
                 if neg_option != -1:
                     print(robotext.deciding[neg_option][3:])
-                    self.robobo.sayText(choice(robotext.negotiation_robot_disagree))
                 self.decision_moves(move, mode, one_way, neg_stage)
                 time.sleep(DEBUG_TIME)
             else:
                 self.robobo.setEmotionTo(Emotions.ANGRY)
                 self.set_upper_leds(color=Color.RED)
                 if neg_option != -1:
+                    self.robobo.sayText(choice(robotext.negotiation_robot_disagree))
                     self.robobo.sayText(robotext.deciding[neg_option][3:], False)
                 self.decision_moves(move, mode, one_way, neg_stage)
         elif situation == R_NEG_AGREE:
@@ -259,7 +260,8 @@ class Robot:
             else:
                 self.robobo.setEmotionTo(Emotions.NORMAL)
                 if move is None:
-                    self.robobo.sayText(choice(robotext.toss_coin))
+                    #self.robobo.sayText(choice(robotext.toss_coin))
+                    pass
                 elif move == TURN_ROBOT:
                     # print("ROBOT SIGN")
                     self.robobo.playNote(note=60, duration=0.5, wait=False)
