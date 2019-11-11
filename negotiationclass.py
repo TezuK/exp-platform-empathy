@@ -11,10 +11,11 @@ class Negotiation:
                                 "2. You chose the most, now let me!",
                                 "3. Your decisions took us to dead ends",
                                 "4. Just toss a coin and get it over with",
-                                "5. Fine, let's do it your way"]
+                                "5. Fine, let's do it your way",
+                                "6. That path is not valid"]
         # All arguments should be available at the start
-        self.arg_avail_robot = [True, True, True, True, True]
-        self.arg_avail_human = [True, True, True, True, True]
+        self.arg_avail_robot = [True, True, True, True, True, False]
+        self.arg_avail_human = [True, True, True, True, True, True]
 
     def check_arg_availability(self, decisions_taken=[0, 0], deadend_count=[0, 0], emotion=EMOTION_NEUTRAL):
         # This method is to DISCARD any argument that is not applicable
@@ -83,5 +84,5 @@ class Negotiation:
         return result
 
     def reset(self):
-        self.arg_avail_robot = [True, True, True, True, True]
-        self.arg_avail_human = [True, True, True, True, True]
+        self.arg_avail_robot = [True, True, True, True, True, False]
+        self.arg_avail_human = [True, True, True, True, True, True]
