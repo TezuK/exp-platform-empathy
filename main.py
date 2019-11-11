@@ -576,12 +576,12 @@ class MainGame(Widget):
 
         if self.robot_action == R_SIT_DECIDE or self.robot_action == R_NEG_WAITING or self.robot_action == R_NEG_RND_2:
             self.robot.make_action(situation=self.robot_action,
-                                   move=background.move_translate(self.prev_r_pos, self.robot_choice),
+                                   move=background.move_translate(self.robot_pos, self.robot_choice),
                                    mode=self.game_mode, one_way=self.one_way or self.backtrack,
                                    neg_stage=self.neg_stage, neg_option=self.robot_neg)
         elif self.robot_action == R_NEG_RND_1:
             self.robot.make_action(situation=self.robot_action,
-                                   move=background.move_translate(self.prev_r_pos, self.robot_choice),
+                                   move=background.move_translate(self.robot_pos, self.robot_choice),
                                    one_way=False,
                                    neg_option=self.robot_neg)
         elif self.robot_action == R_NEG_COIN:
@@ -634,7 +634,8 @@ class MainGame(Widget):
             self.toss_aux = 0
             self.robot_action = R_NEG_COIN
             self.current_toss = None
-            self.robot.robobo.sayText(choice(robotext.toss_coin))
+            if not DEBUG_MODE:
+                self.robot.robobo.sayText(choice(robotext.toss_coin))
         elif self.neg_stage != NEG_STAGE_AGREE and self.toss_aux > 3:
             # Clean screen and show the winner
             self.clean_message_ui()
