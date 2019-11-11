@@ -1,5 +1,5 @@
 from Robobo import Robobo
-from random import randint
+from random import randint, choice
 from const_def import *
 from utils.Wheels import Wheels
 from utils.IR import IR
@@ -34,12 +34,15 @@ class Robot:
         self.robobo.disconnect()
 
     def do_movement(self, move, lite=False):
+        return
         if move == R_MOVE_FWD:
+            self.robobo.sayText(choice(robotext.robot_choice_down))
             self.robobo.moveWheelsByTime(self.speed, self.speed, TIME_STRAIGHT * 2)
             self.robobo.moveWheelsByTime(-1 * self.speed, -1 * self.speed, TIME_STRAIGHT * 0.75)
             self.robobo.moveWheelsByTime(self.speed, self.speed, TIME_STRAIGHT * 0.75)
             self.robobo.moveWheelsByTime(-1 * self.speed, -1 * self.speed, TIME_STRAIGHT * 2)
         elif move == R_MOVE_RIGHT:
+            self.robobo.sayText(choice(robotext.robot_choice_right))
             # make a 45 degree turn & advance, finally revert
             self.robobo.moveWheelsByTime(-1 * self.turn_speed, self.turn_speed, TIME_TURN)
             if not lite:
@@ -47,6 +50,7 @@ class Robot:
                 self.fwd_and_back()
             self.robobo.moveWheelsByTime(self.turn_speed, -1 * self.turn_speed, TIME_TURN)
         elif move == R_MOVE_BACK:
+            self.robobo.sayText(choice(robotext.robot_choice_back))
             # make a 90 degree turn & advance, finally revert
             self.robobo.moveWheelsByTime(-1 * self.turn_speed, self.turn_speed, TIME_TURN * 2)
             if not lite:
@@ -54,6 +58,7 @@ class Robot:
                 self.fwd_and_back()
             self.robobo.moveWheelsByTime(self.turn_speed, -1 * self.turn_speed, TIME_TURN * 2)
         elif move == R_MOVE_LEFT:
+            self.robobo.sayText(choice(robotext.robot_choice_left))
             # make a 45 degree turn & advance, finally revert
             self.robobo.moveWheelsByTime(self.turn_speed, -1 * self.turn_speed, TIME_TURN)
             if not lite:
@@ -85,6 +90,8 @@ class Robot:
         self.robobo.setEmotionTo(Emotions.HAPPY)
 
     def make_action(self, situation, move="", mode=MODE_VS, one_way=False, neg_stage=NEG_STAGE_NONE, neg_option=-1):
+        print("RAQUEL - [Situation] ", str(situation), "[Move] ", str(move), "[neg_stage] ", str(neg_stage), "[neg_option] ", str(neg_option))
+
         if not DEBUG_MODE:
             self.reset_state()
 
@@ -118,6 +125,8 @@ class Robot:
                 self.robobo.sayText(robotext.finish)
                 self.robobo.playSound(sound=Sounds.LAUGH)
                 self.do_movement(R_MOVE_CIRCLE)
+                self.robobo.sayText(choice(robotext.left))
+
         elif situation == R_SIT_AUTO:
             if DEBUG_MODE:
                 if self.same_sit_cnt < R_SAME_CNT:
@@ -182,9 +191,10 @@ class Robot:
                 time.sleep(DEBUG_TIME)
             else:
                 self.robobo.setEmotionTo(Emotions.SAD)
-                self.robobo.sayText(robotext.end_failure[1])
+                self.robobo.sayText(choice(robotext.timeout))
                 self.robobo.setLedColorTo(LED.All, color=Color.RED)
                 self.robobo.moveTiltTo(degrees=130, speed=TILT_SPEED)
+                self.robobo.sayText(choice(robotext.bye))
         elif situation == R_NEG_WAITING:
             if DEBUG_MODE:
                 print("Waiting for direction input...")
@@ -209,13 +219,14 @@ class Robot:
                 self.set_upper_leds(color=Color.CYAN)
                 self.robobo.moveTiltTo(degrees=100, speed=TILT_SPEED)
                 if neg_option != -1:
-                    self.robobo.sayText(robotext.negotiate[randint(0, len(robotext.negotiate) - 1)])
+                    self.robobo.sayText(choice(robotext.negotiate))
                     self.robobo.sayText(robotext.deciding[neg_option][3:])
         elif situation == R_NEG_RND_2:
             if DEBUG_MODE:
                 print("Negotiation round 2...")
                 if neg_option != -1:
                     print(robotext.deciding[neg_option][3:])
+                    self.robobo.sayText(choice(robotext.negotiation_robot_disagree))
                 self.decision_moves(move, mode, one_way, neg_stage)
                 time.sleep(DEBUG_TIME)
             else:
@@ -248,7 +259,7 @@ class Robot:
             else:
                 self.robobo.setEmotionTo(Emotions.NORMAL)
                 if move is None:
-                    self.robobo.sayText(robotext.toss_coin)
+                    self.robobo.sayText(choice(robotext.toss_coin))
                 elif move == TURN_ROBOT:
                     # print("ROBOT SIGN")
                     self.robobo.playNote(note=60, duration=0.5, wait=False)
@@ -264,7 +275,7 @@ class Robot:
             else:
                 self.robobo.setEmotionTo(Emotions.SAD)
                 self.robobo.playSound(Sounds.OUCH)
-                self.robobo.sayText(robotext.coin_lose[randint(0, len(robotext.coin_loss) - 1)])
+                self.robobo.sayText(choice(robotext.coin_lose))
                 self.robobo.moveTiltTo(degrees=100, speed=round(TILT_SPEED / 2))
         elif situation == R_NEG_COIN_WIN:
             if DEBUG_MODE:
@@ -272,7 +283,7 @@ class Robot:
                 time.sleep(DEBUG_TIME)
             else:
                 self.robobo.setEmotionTo(Emotions.HAPPY)
-                self.robobo.sayText(robotext.coin_win[randint(0, len(robotext.coin_win) - 1)])
+                self.robobo.sayText(choice(robotext.coin_win))
                 self.robobo.playSound(Sounds.LIKES)
                 self.set_upper_leds(Color.GREEN)
         elif situation == R_NEG_WIN:
@@ -290,7 +301,8 @@ class Robot:
             if DEBUG_MODE:
                 print(robotext.one_way[self.counters[C_WAITING] % len(robotext.one_way)])
             else:
-                self.robobo.sayText(robotext.one_way[self.counters[C_WAITING] % len(robotext.one_way)])
+                #self.robobo.sayText(robotext.one_way[self.counters[C_WAITING] % len(robotext.one_way)])
+                pass
         else:
             if mode == MODE_VS:
                 if CUES_ORDER == "Sequential":

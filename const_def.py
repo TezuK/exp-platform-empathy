@@ -6,14 +6,14 @@ MAZE_SIZE = 7               # in squares
 START_SELECT = "ROBOT"      # ROBOT / HUMAN
 TIME_LIMIT = 10             # Time limit (in minutes) for the challenge, if it meets then the test ends
 FIXED_MAP = 1               # Use the predetermined maps. 0 => Random, 1 or 2 for defined in maze_def.py
-DEBUG_MODE = True          # If True doesn't use the robot
+DEBUG_MODE = False          # If True doesn't use the robot
 DEBUG_TIME = 0.75           # Sleep time on debug mode
 SHOW_ALL = False            # If True, show the whole map
 SHOW_ADJACENT = False       # If True, show the adjacent blocks
 SHOW_EXIT = True            # If True, it will show a sign on the exit block
-COIN_PERCENTAGE = 0        # To use the coin when no option is available. 0> No use, 100> Always use
+COIN_PERCENTAGE = 20        # To use the coin when no option is available. 0> No use, 100> Always use
 PRE_NEG_CHOICES = 2
-COUNT_SAME_DEC = True       # If True, increments the decision counter for the one that suggested it first
+COUNT_SAME_DEC = False      # If True, increments the decision counter for the one that suggested it first
                             # in negotiation mode even if they agree on the way
 AUTO_MODE = False           # Autopilot mode that will move automatically if there is no other choice
 RANDOM_SELECT = True        # If True, robot will choose random from available choices. If False, right-hand rule
@@ -30,7 +30,7 @@ COOP_CUES = [0, 2]          # Custom cues for negotiation mode (round 1 & round 
 TOTAL_CUES = 3              # Modify this if a new cue is created apart from the ones above
 R_SAME_CNT = 3              # Number of same actions it turns to auto mode
 MAX_DISPLAY_LINES = 10
-LANGUAGE = 'EN'		    # Language to use: ES or EN
+LANGUAGE = 'ES'		    # Language to use: ES or EN
 
 
 # ----------------------------------------

@@ -14,7 +14,7 @@ import foreground
 import robotclass
 import negotiationclass
 import time
-from random import randint
+from random import randint, choice
 
 if LANGUAGE == 'ES':
     import robotext_ES as robotext
@@ -188,7 +188,7 @@ class MainGame(Widget):
         self._keyboard = None
 
     def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
-        choice = PLAYER_NONE
+        selection = PLAYER_NONE
         neg_choice = False
         available = False
 
@@ -196,34 +196,34 @@ class MainGame(Widget):
                 self.game_mode == MODE_FINISH:
             if self.game_mode == MODE_VS or (self.game_mode == MODE_COOP and self.neg_stage == NEG_STAGE_START):
                 if keycode[1] == 'up':
-                    choice = PLAYER_UP
+                    selection = PLAYER_UP
                 elif keycode[1] == 'right':
-                    choice = PLAYER_RIGHT
+                    selection = PLAYER_RIGHT
                 elif keycode[1] == 'down':
-                    choice = PLAYER_DOWN
+                    selection = PLAYER_DOWN
                 elif keycode[1] == 'left':
-                    choice = PLAYER_LEFT
+                    selection = PLAYER_LEFT
             elif self.game_mode == MODE_COOP and \
                     self.neg_stage != NEG_STAGE_START and self.neg_stage != NEG_STAGE_NONE:
                 if keycode[1] == '1':
-                    choice = P_NEG_CH1
+                    selection = P_NEG_CH1
                     available = self.negotiation.mark_as_used(is_robot=False, arg_number=0)
                 elif keycode[1] == '2':
-                    choice = P_NEG_CH2
+                    selection = P_NEG_CH2
                     available = self.negotiation.mark_as_used(is_robot=False, arg_number=1)
                 elif keycode[1] == '3':
-                    choice = P_NEG_CH3
+                    selection = P_NEG_CH3
                     available = self.negotiation.mark_as_used(is_robot=False, arg_number=2)
                 elif keycode[1] == '4':
-                    choice = P_NEG_COIN
+                    selection = P_NEG_COIN
                     available = True
                 elif keycode[1] == '5':
-                    choice = P_NEG_YIELD
+                    selection = P_NEG_YIELD
                     available = True
                     background.write_log(player=TURN_ROBOT, negotiation=True,
                                          neg_reason="YIELD")
 
-                if choice != PLAYER_NONE and available:
+                if selection != PLAYER_NONE and available:
                     neg_choice = True
             # This is done at the end of the game, close screen
             elif self.game_mode == MODE_FINISH:
@@ -240,12 +240,12 @@ class MainGame(Widget):
                 elif keycode[1] == '3':
                     self.robot.presentation()
 
-            if choice != PLAYER_NONE and self.game_mode is not None:
+            if selection != PLAYER_NONE and self.game_mode is not None:
                 if neg_choice:
-                    self.player_neg_choice = choice
+                    self.player_neg_choice = selection
                     self.waiting_input = False
                 else:
-                    map_choice = background.input_to_pos(self.robot_pos, choice)
+                    map_choice = background.input_to_pos(self.robot_pos, selection)
                     if background.check_if_valid(self.maze, self.robot_map, self.robot_pos, map_choice):
                         self.player_choice = map_choice
                         self.waiting_input = False
@@ -378,6 +378,8 @@ class MainGame(Widget):
                         if self.current_turn == TURN_ROBOT:
                             trad_choice = background.pos_to_input(self.robot_pos, self.robot_choice)
                             self.message_robotui = ["I want to go " + trad_choice, "Where do you want to go?"]
+                            self.robot.robobo.sayText(choice(eval("robotext.robot_choice_" + trad_choice.lower())),
+                                                      wait=True)
                         else:
                             self.message_robotui = ["Where do you want to go?"]
 
