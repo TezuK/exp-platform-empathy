@@ -222,6 +222,11 @@ class MainGame(Widget):
                     available = True
                     background.write_log(player=TURN_ROBOT, negotiation=True,
                                          neg_reason="YIELD")
+                elif keycode[1] == '6':
+                    selection = P_NEG_DENY
+                    available = True
+                    background.write_log(player=TURN_ROBOT, negotiation=True,
+                                         neg_reason="DENY")
 
                 if selection != PLAYER_NONE and available:
                     neg_choice = True
@@ -378,8 +383,9 @@ class MainGame(Widget):
                         if self.current_turn == TURN_ROBOT:
                             trad_choice = background.pos_to_input(self.robot_pos, self.robot_choice)
                             self.message_robotui = ["I want to go " + trad_choice, "Where do you want to go?"]
-                            self.robot.robobo.sayText(choice(eval("robotext.robot_choice_" + trad_choice.lower())),
-                                                      wait=True)
+                            if not DEBUG_MODE:
+                                self.robot.robobo.sayText(choice(eval("robotext.robot_choice_" + trad_choice.lower())),
+                                                          wait=True)
                         else:
                             self.message_robotui = ["Where do you want to go?"]
 
@@ -425,6 +431,14 @@ class MainGame(Widget):
                             self.robot_action = R_NEG_WIN
                             self.decisions_taken[0] += 1
                             self.last_decision = TURN_ROBOT
+                            self.take_step = True
+                        elif self.player_neg_choice == P_NEG_DENY:
+                            self.next_step = self.player_choice
+                            self.neg_stage = NEG_STAGE_AGREE
+                            self.message_robotui = ["Ok..."]
+                            self.robot_action = R_NEG_YIELD
+                            self.decisions_taken[1] += 1
+                            self.last_decision = TURN_PLAYER
                             self.take_step = True
                         elif self.player_neg_choice == P_NEG_COIN:
                             self.coin_toss(init=True)

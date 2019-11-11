@@ -154,6 +154,7 @@ P_NEG_CH2 = 1
 P_NEG_CH3 = 2
 P_NEG_COIN = 3
 P_NEG_YIELD = 4
+P_NEG_DENY = 5
 
 # Negotiation Stages
 NEG_STAGE_NONE = "Idle"

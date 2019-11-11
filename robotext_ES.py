@@ -3,7 +3,8 @@ deciding = ["1. Yo he estado decidiendo hasta ahora, déjame continuar",
             "2. tú has estado decidiendo hasta ahora, me toca decidir a mí",
             "3. tus decisiones nos han llevado a callejones sin salida",
             "4. hagámoslo a la suerte",
-            "5. de acuerdo, vamos por donde tú crees"]
+            "5. de acuerdo, vamos por donde tú crees",
+            "6. por ahí no"]
 
 # Lines to say if there is only one way
 one_way = ["solo veo un camino posible",
