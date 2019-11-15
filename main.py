@@ -390,9 +390,6 @@ class MainGame(Widget):
                         if self.current_turn == TURN_ROBOT:
                             trad_choice = background.pos_to_input(self.robot_pos, self.robot_choice)
                             self.message_robotui = ["I want to go " + trad_choice, "Where do you want to go?"]
-                            if not DEBUG_MODE:
-                                self.robot.robobo.sayText(choice(eval("robotext.robot_choice_" + trad_choice.lower())),
-                                                          wait=True)
                         else:
                             self.message_robotui = ["Where do you want to go?"]
 

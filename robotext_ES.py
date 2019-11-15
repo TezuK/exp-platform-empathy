@@ -21,8 +21,7 @@ waiting = ["hacia dónde quieres ir?",
            "por dónde seguimos?",
            "hacia dónde crees que deberíamos ir?"]
 
-agreement = ["genial",
-             "perfecto",
+agreement = ["perfecto",
              "estamos de acuerdo",
              "nos entendemos",
              "pensamos igual",
